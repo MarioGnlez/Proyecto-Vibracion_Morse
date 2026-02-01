@@ -18,7 +18,7 @@ import com.example.vibracion_morse.ConfiguracionVibracion
 fun PantallaAjustes(
     irHome: () -> Unit
 ) {
-    val CelestePrincipal = Color(0xFF4DD0E1)
+    val celestePrincipal = Color(0xFF4DD0E1)
 
     var letrasMs by remember { mutableFloatStateOf(ConfiguracionVibracion.esperaEntreLetras.toFloat()) }
     var palabrasMs by remember { mutableFloatStateOf(ConfiguracionVibracion.esperaEntrePalabras.toFloat()) }
@@ -30,7 +30,7 @@ fun PantallaAjustes(
                     Text(
                         "Configuración",
                         fontWeight = FontWeight.Bold,
-                        color = CelestePrincipal
+                        color = celestePrincipal
                     )
                 },
                 navigationIcon = {
@@ -77,9 +77,9 @@ fun PantallaAjustes(
                             },
                             valueRange = 100f..1000f,
                             colors = SliderDefaults.colors(
-                                thumbColor = CelestePrincipal,
-                                activeTrackColor = CelestePrincipal,
-                                inactiveTrackColor = CelestePrincipal.copy(alpha = 0.2f)
+                                thumbColor = celestePrincipal,
+                                activeTrackColor = celestePrincipal,
+                                inactiveTrackColor = celestePrincipal.copy(alpha = 0.2f)
                             )
                         )
 
@@ -97,9 +97,9 @@ fun PantallaAjustes(
                             },
                             valueRange = 300f..2000f,
                             colors = SliderDefaults.colors(
-                                thumbColor = CelestePrincipal,
-                                activeTrackColor = CelestePrincipal,
-                                inactiveTrackColor = CelestePrincipal.copy(alpha = 0.2f)
+                                thumbColor = celestePrincipal,
+                                activeTrackColor = celestePrincipal,
+                                inactiveTrackColor = celestePrincipal.copy(alpha = 0.2f)
                             )
                         )
                     }
@@ -111,7 +111,7 @@ fun PantallaAjustes(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
+                colors = ButtonDefaults.buttonColors(containerColor = celestePrincipal),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text("GUARDAR Y VOLVER", color = Color.White, fontWeight = FontWeight.Bold)
