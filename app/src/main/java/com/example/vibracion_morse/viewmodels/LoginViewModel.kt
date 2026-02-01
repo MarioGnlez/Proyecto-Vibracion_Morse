@@ -24,45 +24,77 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     var nombreCompleto by mutableStateOf("")
     var telefono by mutableStateOf("")
 
-    // Estado de la pantalla: ¿Estamos registrando o logueando?
+    // Estado de la pantalla
     var esModoRegistro by mutableStateOf(false)
-
     var error by mutableStateOf<String?>(null)
 
+    // BLOQUE INIT: Se ejecuta nada más abrir la pantalla
+    // Esto asegura que los usuarios de prueba existan antes de que te de tiempo a escribir
+    init {
+        asegurarUsuariosDePrueba()
+    }
+
+    private fun asegurarUsuariosDePrueba() {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Si no existe usuario1, lo creamos ahora mismo
+            if (dao.obtenerUsuario("usuario1") == null) {
+                dao.registrarUsuario(Usuario(
+                    nombreCompleto = "Usuario Uno Prueba",
+                    telefono = "111111111",
+                    usuario = "usuario1",
+                    contrasena = "1234"
+                ))
+            }
+            // Si no existe usuario2, lo creamos
+            if (dao.obtenerUsuario("usuario2") == null) {
+                dao.registrarUsuario(Usuario(
+                    nombreCompleto = "Usuario Dos Prueba",
+                    telefono = "222222222",
+                    usuario = "usuario2",
+                    contrasena = "1234"
+                ))
+            }
+        }
+    }
+
     fun onAccionClick(onSuccess: (String) -> Unit) {
-        if (usuario.isBlank() || contrasena.isBlank()) {
+        // 1. Limpiamos espacios en blanco accidentales (SOLUCIÓN IMPORTANTE)
+        val usuarioLimpio = usuario.trim()
+        val passLimpio = contrasena.trim()
+
+        if (usuarioLimpio.isBlank() || passLimpio.isBlank()) {
             error = "Usuario y contraseña son obligatorios"
             return
         }
 
         viewModelScope.launch(Dispatchers.IO) {
             if (esModoRegistro) {
-                // --- LOGICA DE REGISTRO ---
+                // --- REGISTRO ---
                 if (nombreCompleto.isBlank() || telefono.isBlank()) {
                     withContext(Dispatchers.Main) { error = "Rellena todos los campos" }
                     return@launch
                 }
 
-                // 1. Comprobar si ya existe el usuario
-                val existe = dao.obtenerUsuario(usuario)
+                val existe = dao.obtenerUsuario(usuarioLimpio)
                 if (existe != null) {
                     withContext(Dispatchers.Main) { error = "El usuario ya existe, elige otro" }
                 } else {
-                    // 2. Crear usuario
                     dao.registrarUsuario(Usuario(
                         nombreCompleto = nombreCompleto,
                         telefono = telefono,
-                        usuario = usuario,
-                        contrasena = contrasena
+                        usuario = usuarioLimpio,
+                        contrasena = passLimpio
                     ))
-                    withContext(Dispatchers.Main) { onSuccess(usuario) }
+                    withContext(Dispatchers.Main) { onSuccess(usuarioLimpio) }
                 }
 
             } else {
-                // --- LOGICA DE LOGIN ---
-                val usuarioLogueado = dao.login(usuario, contrasena)
+                // --- LOGIN ---
+                // Usamos los datos limpios (sin espacios)
+                val usuarioLogueado = dao.login(usuarioLimpio, passLimpio)
+
                 if (usuarioLogueado != null) {
-                    withContext(Dispatchers.Main) { onSuccess(usuario) }
+                    withContext(Dispatchers.Main) { onSuccess(usuarioLimpio) }
                 } else {
                     withContext(Dispatchers.Main) { error = "Usuario o contraseña incorrectos" }
                 }
@@ -70,7 +102,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Cambiar de modo limpia los errores
     fun cambiarModo() {
         esModoRegistro = !esModoRegistro
         error = null

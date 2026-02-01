@@ -6,7 +6,11 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 
-// Función global: Convierte texto normal a puntos y rayas
+object ConfiguracionVibracion {
+    var esperaEntreLetras: Long = 300L
+    var esperaEntrePalabras: Long = 700L
+}
+
 fun textoAMorse(texto: String): String {
     val morseMap = mapOf(
         'A' to ".-", 'B' to "-...", 'C' to "-.-.", 'D' to "-..", 'E' to ".",
@@ -26,7 +30,6 @@ fun textoAMorse(texto: String): String {
         .joinToString(separator = " ")
 }
 
-// Función global: Recibe el código morse y hace vibrar el teléfono
 fun vibrarPatronMorse(context: Context, codigoMorse: String) {
     if (codigoMorse.isBlank()) return
 
@@ -45,17 +48,20 @@ fun vibrarPatronMorse(context: Context, codigoMorse: String) {
                 tiempos.add(unidadBase)
             }
             ' ' -> {
-                tiempos[ultimoIndice] += (2 * unidadBase)
+                val tiempoActual = tiempos[ultimoIndice]
+                val tiempoRestante = ConfiguracionVibracion.esperaEntreLetras - unidadBase
+                tiempos[ultimoIndice] = tiempoActual + if(tiempoRestante > 0) tiempoRestante else 0
             }
             '/' -> {
-                tiempos[ultimoIndice] += (6 * unidadBase)
+                val tiempoActual = tiempos[ultimoIndice]
+                val tiempoRestante = ConfiguracionVibracion.esperaEntrePalabras - unidadBase
+                tiempos[ultimoIndice] = tiempoActual + if(tiempoRestante > 0) tiempoRestante else 0
             }
         }
     }
 
     val patron = tiempos.toLongArray()
 
-    // Lógica de vibración compatible con versiones nuevas y viejas
     val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         manager.defaultVibrator
@@ -65,10 +71,14 @@ fun vibrarPatronMorse(context: Context, codigoMorse: String) {
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val effect = VibrationEffect.createWaveform(patron, -1)
-        vibrator.vibrate(effect)
+        if (patron.isNotEmpty()) {
+            val effect = VibrationEffect.createWaveform(patron, -1)
+            vibrator.vibrate(effect)
+        }
     } else {
         @Suppress("DEPRECATION")
-        vibrator.vibrate(patron, -1)
+        if (patron.isNotEmpty()) {
+            vibrator.vibrate(patron, -1)
+        }
     }
 }
