@@ -46,11 +46,17 @@ configurations.all {
 }
 
 dependencies {
+    implementation(libs.androidx.junit.ktx)
     val room_version = "2.6.1"
 
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
+
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
 
     implementation("androidx.navigation:navigation-compose:2.7.6")
 
