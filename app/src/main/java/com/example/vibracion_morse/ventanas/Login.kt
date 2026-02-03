@@ -56,7 +56,6 @@ fun PantallaLogin(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-
                 // CAMPOS COMUNES (Usuario y Contraseña)
                 OutlinedTextField(
                     value = viewModel.usuario,
