@@ -25,17 +25,22 @@ Actualmente funciona como una **Demo Técnica Avanzada**, simulando un entorno d
 
 ## 📸 Galería de Vistas
 
-> *La interfaz sigue las guías de Material Design 3 con una paleta limpia en tonos Celeste y Blanco.*
+> *La interfaz sigue las guías de Material Design 3, priorizando la claridad y la accesibilidad.*
 
-| **Login & Registro** | **Home & Chats** |
+| **Acceso Seguro** | **Registro de Usuarios** |
 |:---:|:---:|
-| <img src="assets/captura_login.png" width="250" alt="Pantalla de Login" /> | <img src="assets/captura_home.png" width="250" alt="Pantalla Principal" /> |
-| *Validación de usuarios y creación de cuenta local.* | *Lista de conversaciones. Un toque vibra el nombre.* |
+| <img src="assets/captura_login.png" width="250" alt="Pantalla de Login" /> | <img src="assets/captura_registro.png" width="250" alt="Pantalla de Registro" /> |
+| *Inicio de sesión validado.* | *Formulario de creación de cuenta.* |
 
-| **Chat en Vivo** | **Traductor & Ajustes** |
+| **Mis Conversaciones** | **Chat Interactivo** |
 |:---:|:---:|
-| <img src="assets/captura_chat.png" width="250" alt="Pantalla de Chat" /> | <img src="assets/captura_tools.png" width="250" alt="Traductor y Ajustes" /> |
-| *Persistencia de mensajes. Toca para sentir el texto.* | *Playground de morse y configuración de velocidad.* |
+| <img src="assets/captura_home.png" width="250" alt="Pantalla Home" /> | <img src="assets/captura_chats.png" width="250" alt="Pantalla de Chat" /> |
+| *Lista de contactos. Un toque vibra el nombre.* | *Envío y recepción. Toca el mensaje para sentirlo.* |
+
+| **Traductor Manual** | **Ajustes de Vibración** |
+|:---:|:---:|
+| <img src="assets/captura_traductor.png" width="250" alt="Traductor Manual" /> | <img src="assets/captura_ajustes.png" width="250" alt="Ajustes" /> |
+| *Playground: Escribe y transmite vibración.* | *Calibración precisa de la velocidad del Morse.* |
 
 ---
 
