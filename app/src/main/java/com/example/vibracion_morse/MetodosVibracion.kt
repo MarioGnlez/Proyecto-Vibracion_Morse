@@ -24,6 +24,7 @@ fun textoAMorse(texto: String): String {
         '8' to "---..", '9' to "----.",
         ' ' to "/", 'Ñ' to "--.--"
     )
+
     return texto.uppercase()
         .mapNotNull { char -> morseMap[char] }
         .joinToString(separator = " ")
