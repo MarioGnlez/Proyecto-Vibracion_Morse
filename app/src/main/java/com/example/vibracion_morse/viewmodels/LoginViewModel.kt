@@ -1,4 +1,4 @@
-package com.example.vibracion_morse.ventanas
+package com.example.vibracion_morse.viewmodels
 
 import android.app.Application
 import androidx.compose.runtime.getValue

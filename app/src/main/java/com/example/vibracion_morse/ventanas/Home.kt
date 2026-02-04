@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vibracion_morse.textoAMorse
 import com.example.vibracion_morse.vibrarPatronMorse
+import com.example.vibracion_morse.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
