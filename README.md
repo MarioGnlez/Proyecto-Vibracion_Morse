@@ -29,17 +29,17 @@ Actualmente funciona como una **Demo Técnica Avanzada**, simulando un entorno d
 
 | **Acceso Seguro** | **Registro de Usuarios** |
 |:---:|:---:|
-| <img src="assets/captura_login.png" width="250" alt="Pantalla de Login" /> | <img src="assets/captura_registro.png" width="250" alt="Pantalla de Registro" /> |
+| <img src="fotos-documentacion/captura_login.png" width="250" alt="Pantalla de Login" /> | <img src="fotos-documentacion/captura_registro.png" width="250" alt="Pantalla de Registro" /> |
 | *Inicio de sesión validado.* | *Formulario de creación de cuenta.* |
 
 | **Mis Conversaciones** | **Chat Interactivo** |
 |:---:|:---:|
-| <img src="assets/captura_home.png" width="250" alt="Pantalla Home" /> | <img src="assets/captura_chats.png" width="250" alt="Pantalla de Chat" /> |
+| <img src="fotos-documentacion/captura_home.png" width="250" alt="Pantalla Home" /> | <img src="fotos-documentacion/captura_chats.png" width="250" alt="Pantalla de Chat" /> |
 | *Lista de contactos. Un toque vibra el nombre.* | *Envío y recepción. Toca el mensaje para sentirlo.* |
 
 | **Traductor Manual** | **Ajustes de Vibración** |
 |:---:|:---:|
-| <img src="assets/captura_traductor.png" width="250" alt="Traductor Manual" /> | <img src="assets/captura_ajustes.png" width="250" alt="Ajustes" /> |
+| <img src="fotos-documentacion/captura_traductor.png" width="250" alt="Traductor Manual" /> | <img src="fotos-documentacion/captura_ajustes.png" width="250" alt="Ajustes" /> |
 | *Playground: Escribe y transmite vibración.* | *Calibración precisa de la velocidad del Morse.* |
 
 ---
