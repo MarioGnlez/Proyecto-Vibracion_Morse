@@ -220,6 +220,28 @@ abstract class AppDatabase : RoomDatabase() {
 }
 ```
 
+### 3. Consultas Reactivas (DAO)
+Para lograr una experiencia de chat en tiempo real, se utilizan **Kotlin Flows** en la capa de acceso a datos. Esto permite que la interfaz se actualice automáticamente cuando entra un nuevo mensaje en la base de datos, sin necesidad de refrescar manualmente.
+
+Además, se implementa lógica SQL para filtrar bidireccionalmente la conversación entre dos usuarios específicos.
+
+```kotlin
+@Dao
+interface MensajeDao {
+    // Filtra mensajes donde (Yo -> Tú) O (Tú -> Yo), ordenados cronológicamente
+    @Query("""
+        SELECT * FROM mensajes 
+        WHERE (remitente = :usuario1 AND destinatario = :usuario2) 
+           OR (remitente = :usuario2 AND destinatario = :usuario1) 
+        ORDER BY timestamp ASC
+    """)
+    fun obtenerConversacion(usuario1: String, usuario2: String): Flow<List<Mensaje>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun enviarMensaje(mensaje: Mensaje)
+}
+```
+
 ---
 
 ## Lógica de Negocio y Algoritmos
