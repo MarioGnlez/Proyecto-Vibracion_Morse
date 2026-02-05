@@ -1,9 +1,5 @@
 <div align="center">
-  <img src="assets/logo_banner.png" alt="Morse Chat Banner" width="100%">
-
-  # 📳 Morse Chat
-  
-  ### Siente lo que escribes. Mensajería Táctil con Vibración.
+  <img src="fotos-documentacion/logo_banner.png" alt="Morse Chat Banner" width="100%">
 
   <img src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" />
   <img src="https://img.shields.io/badge/Android-Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white" />
@@ -13,19 +9,19 @@
 
 ---
 
-## 💡 Sobre el Proyecto
+## Descripción General del Proyecto
 
-**Morse Chat** es una aplicación nativa de Android que reinterpreta la mensajería instantánea añadiendo una capa sensorial: **la vibración háptica**. 
+**Morse Chat** es una aplicación nativa de Android diseñada para la mensajería instantánea mediante **vibración háptica**. La aplicación traduce los mensajes de texto a patrones de vibración (Código Morse) en tiempo real, permitiendo a los usuarios interpretar la información mediante el tacto.
 
-La aplicación no solo permite chatear, sino que **traduce los mensajes de texto a patrones de vibración (Código Morse)** en tiempo real. Esto permite a los usuarios "leer" mensajes mediante el tacto, una funcionalidad pensada para la accesibilidad y la comunicación discreta.
-
-Actualmente funciona como una **Demo Técnica Avanzada**, simulando un entorno de servidor mediante una base de datos local robusta (**Room**), gestionando usuarios, sesiones y persistencia de chat.
+Esta funcionalidad responde a una necesidad de accesibilidad y comunicación discreta, eliminando la dependencia visual o auditiva. Actualmente funciona con una arquitectura de base de datos local (**Room**) que simula la persistencia y gestión de sesiones de un entorno real.
 
 ---
 
-## 📸 Galería de Vistas
+## Diseño e Interfaz (Criterios Generales)
 
-> *La interfaz sigue las guías de Material Design 3, priorizando la claridad y la accesibilidad.*
+La interfaz ha sido desarrollada con **Jetpack Compose** siguiendo las guías de Material Design 3, priorizando la claridad y la accesibilidad.
+
+### Galería de Vistas
 
 | **Acceso Seguro** | **Registro de Usuarios** |
 |:---:|:---:|
@@ -42,38 +38,79 @@ Actualmente funciona como una **Demo Técnica Avanzada**, simulando un entorno d
 | <img src="fotos-documentacion/captura_traductor.png" width="250" alt="Traductor Manual" /> | <img src="fotos-documentacion/captura_ajustes.png" width="250" alt="Ajustes" /> |
 | *Playground: Escribe y transmite vibración.* | *Calibración precisa de la velocidad del Morse.* |
 
----
+### Justificación de Diseño y Accesibilidad
 
-## 🚀 Funcionalidades Clave
+El proyecto sigue el principio de "Design for All" para cubrir necesidades de diversidad funcional:
 
-### 📳 Motor Háptico Morse
-- **Traducción en tiempo real:** Algoritmo optimizado para convertir `String` -> `Patrón de Vibración`.
-- **Compatibilidad Dual:** Soporte para APIs antiguas (`Vibrator`) y modernas (`VibratorManager` en Android 12+).
-- **Control de Velocidad:** El usuario puede definir en milisegundos la duración entre "Puntos", "Rayas" y "Espacios" desde los ajustes.
-
-### 💾 Arquitectura de Datos (Local)
-- **Persistencia con Room:** Base de datos SQLite abstracta.
-- **Relaciones:** Sistema relacional completo entre Usuarios y Mensajes.
-- **Lógica Bidireccional:** Simulación de backend; al crear un chat desde el "Usuario A", se genera automáticamente la entrada inversa para el "Usuario B".
-
-### 👆 Experiencia de Usuario (UX)
-- **Toque para leer:** Al pulsar cualquier mensaje en el chat, el teléfono vibra el patrón: *"{Nombre} DIJO {Mensaje}"*.
-- **Identificación háptica:** En la lista de contactos, un toque corto vibra el nombre del usuario para identificarlo sin mirar.
+1.  **Necesidad Social:** Solución para personas con discapacidad visual o sordo-ceguera que requieren privacidad (evitando el uso de TalkBack en público) o comunicación en entornos de silencio absoluto.
+2.  **Interfaz de Alto Contraste:** Uso del color Cian (`#4DD0E1`) sobre fondos neutros para maximizar la visibilidad y ayudar en casos de daltonismo.
+3.  **Tipografía:** Tamaño base de **22sp** e interlineado de **30sp** para facilitar la lectura.
+4.  **Áreas Táctiles:** Padding ampliado a **20dp** en elementos interactivos para usuarios con dificultades motoras.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Evidencias RA5: Gestión de Informes
 
-El proyecto está construido siguiendo las mejores prácticas de desarrollo moderno en Android:
+La aplicación cumple con los criterios de generación de informes integrados mediante la funcionalidad de exportación de chats.
 
-* **Lenguaje:** [Kotlin](https://kotlinlang.org/) (100%)
-* **UI:** [Jetpack Compose](https://developer.android.com/jetpack/compose) (Declarativa)
+* **Herramienta de generación:** Se ha implementado un sistema nativo en Kotlin que recopila el historial de mensajes de la base de datos Room.
+* **Integración:** La funcionalidad es accesible desde el menú de opciones (tres puntos) dentro de cada conversación.
+* **Resultado:** Genera un archivo `.txt` en el almacenamiento privado de la aplicación que incluye:
+    * Cabecera con fecha y hora de generación.
+    * Identificación de los participantes.
+    * Historial cronológico de mensajes con marcas de tiempo.
+
+---
+
+## Evidencias RA7: Distribución e Instalación
+
+Estrategia definida para el despliegue y distribución del software:
+
+### Empaquetado y Firma
+El proyecto se distribuye mediante un archivo **APK firmado** (`app-release.apk`), generado desde Android Studio mediante Keystore seguro. Esto garantiza la integridad y autoría del software.
+
+### Canales de Distribución
+1.  **Repositorio GitHub:** Acceso al código fuente para auditoría y colaboración.
+2.  **Distribución Sideloading:** Entrega directa del APK para instalación en dispositivos sin servicios de Google o entornos controlados.
+
+### Instalación Desatendida
+Para entornos corporativos o educativos (ej. tablets de una asociación), la aplicación soporta instalación mediante ADB sin requerir interacción del usuario en el primer inicio, ya que no solicita permisos críticos en tiempo de ejecución (Runtime Permissions) bloqueantes.
+
+**Comando de instalación:**
+`adb install -r app-release.apk`
+
+---
+
+## Evidencias RA8: Calidad, Seguridad y Rendimiento
+
+### Análisis de Consumo de Recursos (Profiler)
+Se ha realizado un perfilado en tiempo real de la aplicación en un entorno Android 14.
+
+<img src="fotos-documentacion/evidencia_profiler.png" width="800" alt="Gráfica de Rendimiento Android Profiler" />
+
+**Resultados:**
+* **Memoria (RAM):** Consumo estable entre **113-128 MB**. La gráfica plana demuestra la correcta implementación de `LazyColumn`, reciclando vistas y evitando fugas de memoria.
+* **CPU:** Uso cercano al 0% en reposo. Los picos de procesamiento solo ocurren durante la traducción texto-morse y vibración, optimizado mediante Corrutinas (`Dispatchers.IO`).
+
+### Seguridad y Datos
+* **Almacenamiento Local:** Uso de Room Database en directorio privado (`/data/data/...`). El aislamiento de procesos de Android (Sandboxing) impide que otras apps lean los mensajes.
+* **Operatividad Offline:** Al no realizar conexiones a internet, se eliminan vulnerabilidades de interceptación de datos en tránsito.
+
+### Pruebas de Estrés
+La arquitectura está diseñada para soportar grandes volúmenes de datos (ej. +10.000 mensajes) sin bloqueo de la UI, gracias a la carga perezosa de listas y la ejecución de consultas a base de datos en hilos secundarios.
+
+---
+
+## Stack Tecnológico
+
+* **Lenguaje:** Kotlin (100%)
+* **UI:** Jetpack Compose
 * **Arquitectura:** MVVM (Model-View-ViewModel)
-* **Inyección de Dependencias:** ViewModel Factory manual (preparado para Hilt/Koin).
-* **Asincronía:** Coroutines & Kotlin Flows.
-* **Navegación:** Jetpack Navigation Compose con paso de argumentos tipados.
+* **Persistencia:** Room Database (SQLite)
+* **Asincronía:** Coroutines & Flows
+* **Documentación:** KDoc integrado en código fuente.
 
-### 🗄️ Esquema de Base de Datos
+### Esquema de Base de Datos
 
 ```mermaid
 erDiagram
@@ -95,5 +132,6 @@ erDiagram
         string remitente
         string destinatario
         string texto
+        string fecha
         long timestamp
     }
