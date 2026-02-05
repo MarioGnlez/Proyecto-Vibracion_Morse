@@ -73,6 +73,54 @@ La interfaz gráfica se ha construido con **Jetpack Compose** bajo los estándar
 
 ---
 
+## 🏗️ Anexo Técnico: Distribución, Seguridad y Rendimiento (Criterios FFOE)
+
+### 📦 Estrategia de Distribución e Instalación (RA7)
+
+Para garantizar que **Morse Chat** llegue a sus usuarios finales de forma eficiente y profesional, se ha definido la siguiente estrategia de despliegue:
+
+#### 1. Canales de Distribución
+* **Repositorio GitHub (Código Abierto):** El canal principal actual. Permite la colaboración comunitaria y la auditoría del código, esencial en proyectos de accesibilidad.
+* **Google Play Store (Proyección):** Para una fase de producción, se utilizaría el canal "Beta Testing" de Google Play Console para distribuir actualizaciones automáticas y seguras.
+* **Distribución Directa (Sideloading):** Entrega del archivo `.apk` firmado para instalación manual en entornos donde no se dispone de cuentas de Google (ej: dispositivos corporativos restringidos o tablets educativas antiguas).
+
+#### 2. Instalación Desatendida (Enterprise)
+En un escenario de despliegue masivo (por ejemplo, instalar la app en 50 tablets de una asociación de personas sordociegas), la instalación manual es inviable. La app está preparada para una **Instalación Desatendida** mediante herramientas MDM (Mobile Device Management) o ADB:
+
+* **Comando ADB:** `adb install -r app-release.apk`
+* **Justificación:** Al no requerir permisos peligrosos en tiempo de ejecución (como Cámara o Ubicación) en el primer inicio, la app es funcional inmediatamente después de una instalación silenciosa, facilitando el trabajo a los administradores de sistemas.
+
+---
+
+### 🛡️ Seguridad y Protección de Datos (RA8)
+
+La seguridad en **Morse Chat** se basa en el principio de **"Privacidad por Diseño"**. Al ser una herramienta de comunicación, la integridad de los datos es crítica.
+
+#### 1. Seguridad de la Base de Datos (Room)
+* **Sandboxing de Android:** La base de datos SQLite generada por Room se aloja en el directorio privado `/data/data/com.example.vibracion_morse/databases/`. Gracias al aislamiento de procesos de Linux (Kernel de Android), ninguna otra aplicación sin permisos de `ROOT` puede acceder a leer los chats.
+* **Sin Permisos de Internet:** Al operar 100% offline, se elimina vector de ataque más común: la interceptación de datos en tránsito (Man-in-the-Middle) o fugas a servidores externos.
+
+#### 2. Medidas de Protección Futuras (Roadmap)
+Para elevar el nivel de seguridad a estándares militares/bancarios, se contempla la implementación de:
+* **SQLCipher:** Encriptación AES-256 transparente de la base de datos Room. Si alguien robara el teléfono y extrajera el archivo físico, no podría leer el contenido sin la clave.
+* **Ofuscación de Código (R8/ProGuard):** Activado en el build `release` para renombrar clases y métodos, dificultando la ingeniería inversa y el análisis malintencionado del APK.
+
+---
+
+### 🧪 Pruebas de Rendimiento y Estrés (RA8)
+
+Se ha analizado teóricamente el comportamiento de la aplicación bajo condiciones de carga extrema (Volumen y Estrés).
+
+#### 1. Gestión de Grandes Volúmenes de Datos
+**Escenario:** Un usuario acumula 10.000 mensajes en una conversación.
+* **Solución Técnica:** El uso de `LazyColumn` en Jetpack Compose es la clave. A diferencia de un `ScrollView` tradicional, `LazyColumn` solo renderiza en memoria los elementos visibles en pantalla (reciclaje de vistas).
+* **Resultado:** Aunque la base de datos contenga 1GB de texto, la memoria RAM consumida por la UI se mantiene constante y baja, evitando el cierre inesperado (ANR - Application Not Responding).
+
+#### 2. Concurrencia y Hilos
+**Escenario:** El usuario pulsa el botón "Enviar" repetidamente a alta velocidad mientras se cargan mensajes antiguos.
+* **Solución Técnica:** Uso de **Kotlin Coroutines** con el despachador `Dispatchers.IO` para todas las operaciones de base de datos.
+* **Resultado:** La interfaz de usuario (Main Thread) nunca se congela, ya que la escritura en disco ocurre en un hilo secundario. El uso de `Flow` permite que la lista se actualice reactivamente sin bloquear la app.
+
 ## 🚀 Funcionalidades Clave
 
 ### 📳 Motor Háptico Morse
