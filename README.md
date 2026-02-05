@@ -44,94 +44,17 @@ El proyecto sigue el principio de "Design for All" para cubrir necesidades de di
 
 1.  **Necesidad Social:** Solución para personas con discapacidad visual o sordo-ceguera que requieren privacidad (evitando el uso de TalkBack en público) o comunicación en entornos de silencio absoluto.
 2.  **Interfaz de Alto Contraste:** Uso del color Cian (`#4DD0E1`) sobre fondos neutros para maximizar la visibilidad y ayudar en casos de daltonismo.
-3.  **Tipografía:** Tamaño base de **22sp** e interlineado de **30sp** para facilitar la lectura.
+3.  **Tipografía:** Tamaño base de **22sp** e interlineado de **30sp** en el chat para facilitar la lectura.
 4.  **Áreas Táctiles:** Padding ampliado a **20dp** en elementos interactivos para usuarios con dificultades motoras.
 
 ---
 
 ## Evidencias RA5: Gestión de Informes
 
-La aplicación cumple con los criterios de generación de informes integrados mediante la funcionalidad de exportación de chats.
+La aplicación cumple con los criterios de generación de informes integrados. Se ha desarrollado un módulo específico que permite exportar el historial completo de cualquier conversación a un archivo de texto legible.
 
-* **Herramienta de generación:** Se ha implementado un sistema nativo en Kotlin que recopila el historial de mensajes de la base de datos Room.
-* **Integración:** La funcionalidad es accesible desde el menú de opciones (tres puntos) dentro de cada conversación.
-* **Resultado:** Genera un archivo `.txt` en el almacenamiento privado de la aplicación que incluye:
-    * Cabecera con fecha y hora de generación.
-    * Identificación de los participantes.
-    * Historial cronológico de mensajes con marcas de tiempo.
+**Implementación Técnica:**
+El siguiente fragmento muestra la función encargada de recopilar los datos de la base de datos, formatearlos con marcas de tiempo y escribir el archivo en el almacenamiento privado del dispositivo.
 
----
-
-## Evidencias RA7: Distribución e Instalación
-
-Estrategia definida para el despliegue y distribución del software:
-
-### Empaquetado y Firma
-El proyecto se distribuye mediante un archivo **APK firmado** (`app-release.apk`), generado desde Android Studio mediante Keystore seguro. Esto garantiza la integridad y autoría del software.
-
-### Canales de Distribución
-1.  **Repositorio GitHub:** Acceso al código fuente para auditoría y colaboración.
-2.  **Distribución Sideloading:** Entrega directa del APK para instalación en dispositivos sin servicios de Google o entornos controlados.
-
-### Instalación Desatendida
-Para entornos corporativos o educativos (ej. tablets de una asociación), la aplicación soporta instalación mediante ADB sin requerir interacción del usuario en el primer inicio, ya que no solicita permisos críticos en tiempo de ejecución (Runtime Permissions) bloqueantes.
-
-**Comando de instalación:**
-`adb install -r app-release.apk`
-
----
-
-## Evidencias RA8: Calidad, Seguridad y Rendimiento
-
-### Análisis de Consumo de Recursos (Profiler)
-Se ha realizado un perfilado en tiempo real de la aplicación en un entorno Android 14.
-
-<img src="fotos-documentacion/evidencia_profiler.png" width="800" alt="Gráfica de Rendimiento Android Profiler" />
-
-**Resultados:**
-* **Memoria (RAM):** Consumo estable entre **113-128 MB**. La gráfica plana demuestra la correcta implementación de `LazyColumn`, reciclando vistas y evitando fugas de memoria.
-* **CPU:** Uso cercano al 0% en reposo. Los picos de procesamiento solo ocurren durante la traducción texto-morse y vibración, optimizado mediante Corrutinas (`Dispatchers.IO`).
-
-### Seguridad y Datos
-* **Almacenamiento Local:** Uso de Room Database en directorio privado (`/data/data/...`). El aislamiento de procesos de Android (Sandboxing) impide que otras apps lean los mensajes.
-* **Operatividad Offline:** Al no realizar conexiones a internet, se eliminan vulnerabilidades de interceptación de datos en tránsito.
-
-### Pruebas de Estrés
-La arquitectura está diseñada para soportar grandes volúmenes de datos (ej. +10.000 mensajes) sin bloqueo de la UI, gracias a la carga perezosa de listas y la ejecución de consultas a base de datos en hilos secundarios.
-
----
-
-## Stack Tecnológico
-
-* **Lenguaje:** Kotlin (100%)
-* **UI:** Jetpack Compose
-* **Arquitectura:** MVVM (Model-View-ViewModel)
-* **Persistencia:** Room Database (SQLite)
-* **Asincronía:** Coroutines & Flows
-* **Documentación:** KDoc integrado en código fuente.
-
-### Esquema de Base de Datos
-
-```mermaid
-erDiagram
-    USUARIO ||--o{ CHAT : tiene
-    USUARIO ||--o{ MENSAJE : envia
-    USUARIO {
-        int id PK
-        string usuario UK
-        string password
-        string telefono
-    }
-    CHAT {
-        int id PK
-        string propietario
-        string contacto
-    }
-    MENSAJE {
-        int id PK
-        string remitente
-        string destinatario
-        string texto
-        string fecha
-        long timestamp
-    }
+```kotlin
+// Del archivo PantallaChat.kt incluir aqui de la linea 188 a la linea 215
