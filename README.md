@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo_banner.png" alt="Morse Chat Banner" width="100%">
+  <img src="fotos-documentacion/logo_banner.png" alt="Morse Chat Banner" width="100%">
 
   # 📳 Morse Chat
   
