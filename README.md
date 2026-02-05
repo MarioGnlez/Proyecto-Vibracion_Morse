@@ -44,6 +44,34 @@ Actualmente funciona como una **Demo Técnica Avanzada**, simulando un entorno d
 
 ---
 
+## 🧠 Justificación de Diseño y Accesibilidad
+
+Este proyecto ha sido diseñado siguiendo los principios de **"Design for All"** (Diseño para todos), priorizando la usabilidad para personas con diversidad funcional visual o auditiva.
+
+### 1. Selección de Necesidad Social
+Detectamos una carencia en las aplicaciones de mensajería instantánea tradicionales: la dependencia absoluta de la vista o el oído.
+* **Problema:** Una persona invidente necesita usar TalkBack (que anuncia en voz alta), perdiendo privacidad. Una persona en un entorno de silencio absoluto no puede recibir información discretamente.
+* **Solución:** **Morse Chat** utiliza el canal háptico (tacto/vibración) como medio principal de comunicación, devolviendo la privacidad y la autonomía.
+
+### 2. Decisiones de Interfaz (UI/UX)
+La interfaz gráfica se ha construido con **Jetpack Compose** bajo los estándares de Material Design 3, pero con modificaciones específicas para accesibilidad:
+
+* **Paleta de Colores de Alto Contraste:**
+    * **Primario:** Cian (`#4DD0E1`). Se eligió sobre el azul estándar por ofrecer mejor visibilidad sobre fondos oscuros y transmitir calma.
+    * **Fondos:** Blancos y Grises neutros para evitar fatiga visual.
+    * **Diferenciación:** Los mensajes propios y ajenos se distinguen no solo por posición, sino por un contraste de color claro (Cian vs Gris), ayudando a usuarios con daltonismo.
+
+* **Tipografía y Legibilidad:**
+    * Se ha implementado un tamaño de fuente base de **22sp** (superior al estándar de 16sp) en los chats.
+    * Aumento del `lineHeight` (interlineado) a **30sp** para evitar que las líneas de texto se mezclen visualmente.
+    * Uso de fuentes Sans-Serif limpias para facilitar la lectura rápida.
+
+### 3. Accesibilidad Háptica y Motora
+* **Feedback Táctil:** Cada interacción importante (enviar mensaje, recibir notificación) tiene una respuesta de vibración, confirmando la acción sin necesidad de mirar la pantalla.
+* **Áreas de Toque Ampliadas:** Las burbujas de chat tienen un `padding` interno de **20dp**, creando una superficie de contacto grande. Esto facilita la interacción a usuarios con dificultades motoras o temblores en las manos, reduciendo los "toques fantasma" o errores.
+
+---
+
 ## 🚀 Funcionalidades Clave
 
 ### 📳 Motor Háptico Morse
