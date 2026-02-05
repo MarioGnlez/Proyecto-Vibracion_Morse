@@ -150,6 +150,16 @@ El proyecto está construido siguiendo las mejores prácticas de desarrollo mode
 * **Asincronía:** Coroutines & Kotlin Flows.
 * **Navegación:** Jetpack Navigation Compose con paso de argumentos tipados.
 
+### 📊 Análisis de Consumo de Recursos (Evidencia RA8)
+
+Se ha realizado un perfilado en tiempo real (Profiling) de la aplicación durante una sesión de uso intensivo (envío de mensajes y navegación).
+
+<img src="fotos-documentacion/evidencia_profiler.png" width="800" alt="Gráfica de Rendimiento Android Profiler" />
+
+**Interpretación de los datos obtenidos:**
+* **Estabilidad de Memoria (RAM):** Como se observa en la gráfica inferior (zona azul), el consumo de memoria se mantiene **plano y estable** en torno a los **113-128 MB**, incluso tras navegar por varias pantallas. Esto demuestra la ausencia de fugas de memoria (Memory Leaks) y la eficiencia del reciclaje de vistas de `Jetpack Compose`.
+* **Eficiencia de CPU:** El consumo de procesador (gráfica superior) se mantiene cercano al **0%** en reposo, con picos puntuales únicamente coincidentes con las interacciones del usuario (puntos rosas en la línea de tiempo), validando la arquitectura reactiva del proyecto.
+
 ### 🗄️ Esquema de Base de Datos
 
 ```mermaid
