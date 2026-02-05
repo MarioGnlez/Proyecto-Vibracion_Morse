@@ -32,9 +32,11 @@ fun Home(
 ) {
     val context = LocalContext.current
     val chats by viewModel.misChats.collectAsState()
+    // Guardamos qué chat hemos tocado una vez para saber si hay que entrar o no
     var chatSeleccionado by remember { mutableStateOf<Int?>(null) }
     val CelestePrincipal = Color(0xFF4DD0E1)
 
+    // Nada más entrar, cargamos los chats de la base de datos
     LaunchedEffect(usuarioLogueado) {
         viewModel.cargarChats(usuarioLogueado)
     }
@@ -51,6 +53,7 @@ fun Home(
                     )
                 },
                 actions = {
+                    // Botón + para crear un chat nuevo
                     IconButton(onClick = { viewModel.mostrarDialogo = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Añadir Chat", tint = CelestePrincipal)
                     }
@@ -70,6 +73,7 @@ fun Home(
                         Text("No tienes conversaciones.", color = Color.Gray)
                     }
                 } else {
+                    // Lista eficiente que solo carga lo que cabe en la pantalla
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(chats) { chat ->
                             val esSeleccionado = chatSeleccionado == chat.id
@@ -80,8 +84,10 @@ fun Home(
                                 ),
                                 onClick = {
                                     if (esSeleccionado) {
+                                        // Si ya estaba seleccionado y tocas otra vez, entras al chat
                                         irChat(chat.usuarioContacto)
                                     } else {
+                                        // Si es la primera vez que tocas, vibra el nombre del contacto
                                         chatSeleccionado = chat.id
                                         val morse = textoAMorse(chat.usuarioContacto)
                                         vibrarPatronMorse(context, morse)
@@ -100,6 +106,7 @@ fun Home(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botones inferiores para ir al traductor o a los ajustes
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -128,20 +135,77 @@ fun Home(
             }
         }
 
+        // Ventanita emergente para añadir un amigo nuevo
         if (viewModel.mostrarDialogo) {
             var nuevoContacto by remember { mutableStateOf("") }
+            val CelestePrincipal = Color(0xFF4DD0E1)
+
             AlertDialog(
                 onDismissRequest = { viewModel.mostrarDialogo = false },
-                title = { Text("Nuevo Chat") },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(24.dp),
+                title = {
+                    Text(
+                        text = "Nuevo Chat",
+                        color = CelestePrincipal,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 text = {
                     Column {
-                        Text("Escribe el nombre de un usuario para iniciar un chat con él")
-                        OutlinedTextField(value = nuevoContacto, onValueChange = { nuevoContacto = it; viewModel.errorDialogo = null }, label = { Text("Usuario") })
-                        if (viewModel.errorDialogo != null) Text(viewModel.errorDialogo!!, color = Color.Red)
+                        Text(
+                            text = "Escribe el nombre del usuario con el que quieres hablar:",
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = nuevoContacto,
+                            onValueChange = {
+                                nuevoContacto = it
+                                viewModel.errorDialogo = null
+                            },
+                            label = { Text("Nombre de usuario") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = CelestePrincipal,
+                                focusedLabelColor = CelestePrincipal,
+                                cursorColor = CelestePrincipal,
+                                unfocusedBorderColor = Color.LightGray
+                            )
+                        )
+
+                        if (viewModel.errorDialogo != null) {
+                            Text(
+                                text = viewModel.errorDialogo!!,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
                     }
                 },
                 confirmButton = {
-                    Button(onClick = { viewModel.intentarCrearChat(usuarioLogueado, nuevoContacto) }) { Text("AÑADIR") }
+                    Button(
+                        onClick = { viewModel.intentarCrearChat(usuarioLogueado, nuevoContacto) },
+                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("AÑADIR", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { viewModel.mostrarDialogo = false },
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("CANCELAR", color = Color.Gray, fontWeight = FontWeight.Bold)
+                    }
                 }
             )
         }

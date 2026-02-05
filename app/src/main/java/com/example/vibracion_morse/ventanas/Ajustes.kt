@@ -20,6 +20,7 @@ fun PantallaAjustes(
 ) {
     val celestePrincipal = Color(0xFF4DD0E1)
 
+    // Cargamos la velocidad actual de las letras y palabras para mostrarlas en las barras
     var letrasMs by remember { mutableFloatStateOf(ConfiguracionVibracion.esperaEntreLetras.toFloat()) }
     var palabrasMs by remember { mutableFloatStateOf(ConfiguracionVibracion.esperaEntrePalabras.toFloat()) }
 
@@ -34,6 +35,7 @@ fun PantallaAjustes(
                     )
                 },
                 navigationIcon = {
+                    // Botón para volver atrás
                     IconButton(onClick = irHome) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
@@ -69,10 +71,12 @@ fun PantallaAjustes(
                             text = "Espacio entre letras: ${letrasMs.toLong()} ms",
                             style = MaterialTheme.typography.titleMedium
                         )
+                        // Barra deslizante para cambiar la velocidad entre letras
                         Slider(
                             value = letrasMs,
                             onValueChange = {
                                 letrasMs = it
+                                // Guardamos el cambio en la configuración global
                                 ConfiguracionVibracion.esperaEntreLetras = it.toLong()
                             },
                             valueRange = 100f..1000f,
@@ -89,10 +93,12 @@ fun PantallaAjustes(
                             text = "Espacio entre palabras: ${palabrasMs.toLong()} ms",
                             style = MaterialTheme.typography.titleMedium
                         )
+                        // Barra deslizante para cambiar la velocidad entre palabras
                         Slider(
                             value = palabrasMs,
                             onValueChange = {
                                 palabrasMs = it
+                                // Guardamos el cambio en la configuración global
                                 ConfiguracionVibracion.esperaEntrePalabras = it.toLong()
                             },
                             valueRange = 300f..2000f,
@@ -106,6 +112,7 @@ fun PantallaAjustes(
                 }
             }
 
+            // Botón grande para guardar y salir
             Button(
                 onClick = irHome,
                 modifier = Modifier

@@ -16,27 +16,26 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = AppDatabase.getDatabase(application).usuarioDao()
 
-    // Estados de los campos
+    // Variables para guardar lo que escribes en las cajas de texto
     var usuario by mutableStateOf("")
     var contrasena by mutableStateOf("")
 
-    // Campos solo para registro
+    // Estos solo se usan si te estás registrando
     var nombreCompleto by mutableStateOf("")
     var telefono by mutableStateOf("")
 
-    // Estado de la pantalla
+    // Controla si estamos viendo la pantalla de Login o la de Registro
     var esModoRegistro by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
 
-    // BLOQUE INIT: Se ejecuta nada más abrir la pantalla
-    // Esto asegura que los usuarios de prueba existan antes de que te de tiempo a escribir
+    // Esto se ejecuta nada más abrir la pantalla
     init {
         asegurarUsuariosDePrueba()
     }
 
+    // Crea usuarios falsos de prueba si es la primera vez que abres la app
     private fun asegurarUsuariosDePrueba() {
         viewModelScope.launch(Dispatchers.IO) {
-            // Si no existe usuario1, lo creamos ahora mismo
             if (dao.obtenerUsuario("usuario1") == null) {
                 dao.registrarUsuario(Usuario(
                     nombreCompleto = "Usuario Uno Prueba",
@@ -45,7 +44,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     contrasena = "1234"
                 ))
             }
-            // Si no existe usuario2, lo creamos
             if (dao.obtenerUsuario("usuario2") == null) {
                 dao.registrarUsuario(Usuario(
                     nombreCompleto = "Usuario Dos Prueba",
@@ -57,8 +55,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Qué pasa cuando pulsas el botón "Entrar" o "Registrarse"
     fun onAccionClick(onSuccess: (String) -> Unit) {
-        // 1. Limpiamos espacios en blanco accidentales (SOLUCIÓN IMPORTANTE)
+        // Quitamos espacios en blanco por si acaso
         val usuarioLimpio = usuario.trim()
         val passLimpio = contrasena.trim()
 
@@ -69,16 +68,18 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch(Dispatchers.IO) {
             if (esModoRegistro) {
-                // --- REGISTRO ---
+                // --- MODO REGISTRO ---
                 if (nombreCompleto.isBlank() || telefono.isBlank()) {
                     withContext(Dispatchers.Main) { error = "Rellena todos los campos" }
                     return@launch
                 }
 
+                // Comprobamos si ya existe alguien con ese nombre
                 val existe = dao.obtenerUsuario(usuarioLimpio)
                 if (existe != null) {
                     withContext(Dispatchers.Main) { error = "El usuario ya existe, elige otro" }
                 } else {
+                    // Si no existe, lo guardamos
                     dao.registrarUsuario(Usuario(
                         nombreCompleto = nombreCompleto,
                         telefono = telefono,
@@ -89,19 +90,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
             } else {
-                // --- LOGIN ---
-                // Usamos los datos limpios (sin espacios)
+                // --- MODO LOGIN ---
                 val usuarioLogueado = dao.login(usuarioLimpio, passLimpio)
 
                 if (usuarioLogueado != null) {
+                    // Login correcto
                     withContext(Dispatchers.Main) { onSuccess(usuarioLimpio) }
                 } else {
+                    // Contraseña o usuario mal
                     withContext(Dispatchers.Main) { error = "Usuario o contraseña incorrectos" }
                 }
             }
         }
     }
 
+    // Cambia entre la vista de Login y la de Registro
     fun cambiarModo() {
         esModoRegistro = !esModoRegistro
         error = null

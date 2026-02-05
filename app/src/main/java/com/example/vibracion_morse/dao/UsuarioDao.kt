@@ -8,9 +8,6 @@ import com.example.vibracion_morse.datos.Usuario
 
 @Dao
 interface UsuarioDao {
-
-    // CAMBIO AQUÍ: Añadimos onConflict = OnConflictStrategy.IGNORE
-    // Esto significa: "Si el usuario ya existe, no hagas nada y no des error".
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun registrarUsuario(usuario: Usuario)
 

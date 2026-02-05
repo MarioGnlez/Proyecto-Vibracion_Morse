@@ -9,5 +9,6 @@ data class Mensaje(
     val remitente: String,
     val destinatario: String,
     val texto: String,
+    val fecha: String,
     val timestamp: Long = System.currentTimeMillis()
 )

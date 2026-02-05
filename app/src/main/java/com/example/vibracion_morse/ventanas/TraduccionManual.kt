@@ -44,6 +44,7 @@ fun TraduccionManual(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Caja grande para escribir lo que quieras
             OutlinedTextField(
                 value = textoUsuario,
                 onValueChange = { textoUsuario = it },
@@ -62,6 +63,7 @@ fun TraduccionManual(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botón mágico: convierte el texto a Morse y hace vibrar el móvil
             Button(
                 onClick = {
                     val codigoMorse = textoAMorse(textoUsuario)
@@ -76,6 +78,7 @@ fun TraduccionManual(
                 Text("TRANSMITIR VIBRACIÓN", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
+            // Si has escrito algo, te enseño la traducción en puntos y rayas abajo
             if (textoUsuario.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Card(
@@ -95,6 +98,7 @@ fun TraduccionManual(
             }
         }
 
+        // Botón para volver al menú principal
         Button(
             onClick = { irHome() },
             modifier = Modifier

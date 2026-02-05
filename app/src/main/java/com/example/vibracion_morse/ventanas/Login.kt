@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -40,7 +39,7 @@ fun PantallaLogin(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Título dinámico
+        // Cambia el título si estamos registrando o iniciando sesión
         Text(
             text = if (viewModel.esModoRegistro) "Crear Cuenta" else "Iniciar Sesión",
             fontSize = 32.sp,
@@ -57,7 +56,7 @@ fun PantallaLogin(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // CAMPOS COMUNES (Usuario y Contraseña)
+                // Campo para el nombre de usuario
                 OutlinedTextField(
                     value = viewModel.usuario,
                     onValueChange = { viewModel.usuario = it; viewModel.error = null },
@@ -70,6 +69,7 @@ fun PantallaLogin(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Campo contraseña (con puntitos para que no se vea)
                 OutlinedTextField(
                     value = viewModel.contrasena,
                     onValueChange = { viewModel.contrasena = it; viewModel.error = null },
@@ -77,12 +77,12 @@ fun PantallaLogin(
                     leadingIcon = { Icon(Icons.Default.Lock, null, tint = CelestePrincipal) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    visualTransformation = PasswordVisualTransformation(), // Ocultar contraseña
+                    visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true
                 )
 
-                // CAMPOS SOLO REGISTRO
+                // Si estamos en modo "Registro", mostramos estos campos extra
                 if (viewModel.esModoRegistro) {
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -114,6 +114,7 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Si hay algún error (como contraseña incorrecta), lo mostramos en rojo
         if (viewModel.error != null) {
             Text(
                 text = viewModel.error!!,
@@ -122,7 +123,7 @@ fun PantallaLogin(
             )
         }
 
-        // BOTÓN PRINCIPAL
+        // Botón principal para entrar o registrarse
         Button(
             onClick = { viewModel.onAccionClick(onLoginSuccess) },
             modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -139,7 +140,7 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // BOTÓN CAMBIO DE MODO
+        // Texto clicable para cambiar entre Login y Registro
         Text(
             text = if (viewModel.esModoRegistro) "¿Ya tienes cuenta? Inicia sesión aquí" else "¿No tienes cuenta? Regístrate aquí",
             color = Color.Gray,
