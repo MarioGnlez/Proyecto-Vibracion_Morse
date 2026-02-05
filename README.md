@@ -51,6 +51,7 @@ Este proyecto ha sido diseñado siguiendo los principios de **"Design for All"**
 ### 1. Selección de Necesidad Social
 Detectamos una carencia en las aplicaciones de mensajería instantánea tradicionales: la dependencia absoluta de la vista o el oído.
 * **Problema:** Una persona invidente necesita usar TalkBack (que anuncia en voz alta), perdiendo privacidad. Una persona en un entorno de silencio absoluto no puede recibir información discretamente.
+* * **Problema:** Una persona con sordo-ceguera no puede usar si quiera esa funcion de TalkBack.
 * **Solución:** **Morse Chat** utiliza el canal háptico (tacto/vibración) como medio principal de comunicación, devolviendo la privacidad y la autonomía.
 
 ### 2. Decisiones de Interfaz (UI/UX)
