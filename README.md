@@ -1,10 +1,6 @@
 <div align="center">
   <img src="fotos-documentacion/logo_banner.png" alt="Morse Chat Banner" width="100%">
 
-  # 📳 Morse Chat
-  
-  ### Siente lo que escribes. Mensajería Táctil con Vibración.
-
   <img src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" />
   <img src="https://img.shields.io/badge/Android-Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white" />
   <img src="https://img.shields.io/badge/Architecture-MVVM-brightgreen?style=for-the-badge" />
