@@ -16,6 +16,9 @@
 Esta funcionalidad responde a una necesidad de accesibilidad y comunicación discreta, eliminando la dependencia visual o auditiva. Actualmente funciona con una arquitectura de base de datos local (**Room**) que simula la persistencia y gestión de sesiones de un entorno real.
 
 ---
+## 📹 Demo en Vídeo
+[▶️ Ver Vídeo Explicativo del Proyecto (Google Drive)](PEGA_AQUI_TU_ENLACE_DE_DRIVE)
+---
 
 ## Diseño e Interfaz (Criterios Generales)
 
