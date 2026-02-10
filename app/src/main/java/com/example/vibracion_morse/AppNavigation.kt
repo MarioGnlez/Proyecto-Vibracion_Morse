@@ -14,6 +14,7 @@ object Route {
     const val MANUAL = "manual"
     const val AJUSTES = "ajustes"
     const val CHAT_INDIVIDUAL = "chat/{miUsuario}/{otroUsuario}"
+    const val SEGUIMIENTO = "seguimiento/{pacienteId}/{adminId}"
 }
 
 @Composable
@@ -40,6 +41,23 @@ fun AppNavigation() {
         }
 
         composable(
+            route = Route.SEGUIMIENTO,
+            arguments = listOf(
+                navArgument("pacienteId") { type = NavType.StringType },
+                navArgument("adminId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val pacienteId = backStackEntry.arguments?.getString("pacienteId") ?: ""
+            val adminId = backStackEntry.arguments?.getString("adminId") ?: ""
+
+            PantallaSeguimiento(
+                pacienteId = pacienteId,
+                usuarioAdminLogueado = adminId,
+                irAtras = { navController.popBackStack() }
+            )
+        }
+
+        composable(
             route = Route.HOME,
             arguments = listOf(navArgument("usuario") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -48,9 +66,8 @@ fun AppNavigation() {
                 usuarioLogueado = usuario,
                 irTraductorManual = { navController.navigate(Route.MANUAL) },
                 irAjustes = { navController.navigate(Route.AJUSTES) },
-                irChat = { contacto ->
-                    navController.navigate("chat/$usuario/$contacto")
-                }
+                irChat = { contacto -> navController.navigate("chat/$usuario/$contacto") },
+                irSeguimiento = { paciente -> navController.navigate("seguimiento/$paciente/$usuario") }
             )
         }
 
@@ -63,19 +80,11 @@ fun AppNavigation() {
         }
 
         composable(Route.MANUAL) {
-            TraduccionManual(
-                irHome = {
-                    navController.popBackStack()
-                }
-            )
+            TraduccionManual(irHome = { navController.popBackStack() })
         }
 
         composable(Route.AJUSTES) {
-            PantallaAjustes(
-                irHome = {
-                    navController.popBackStack()
-                }
-            )
+            PantallaAjustes(irHome = { navController.popBackStack() })
         }
     }
 }

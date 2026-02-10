@@ -7,25 +7,24 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.vibracion_morse.dao.ChatDao
 import com.example.vibracion_morse.dao.MensajeDao
+import com.example.vibracion_morse.dao.SeguimientoDao
 import com.example.vibracion_morse.dao.UsuarioDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-// Aquí definimos las tablas que vamos a usar (Usuarios, Chats y Mensajes) y la versión de la base de datos
-@Database(entities = [Usuario::class, Chat::class, Mensaje::class], version = 4, exportSchema = false)
+@Database(entities = [Usuario::class, Chat::class, Mensaje::class, Seguimiento::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
-    // Estas funciones nos sirven para poder guardar y leer datos de cada tabla
     abstract fun usuarioDao(): UsuarioDao
     abstract fun chatDao(): ChatDao
     abstract fun mensajeDao(): MensajeDao
+    abstract fun seguimientoDao(): SeguimientoDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Esta función se encarga de crear la base de datos si no existe, o devolvernos la que ya hay
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -33,9 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "vibracion_morse_database"
                 )
-                    // Si cambiamos algo en la base de datos, borra la vieja y crea una nueva limpia
                     .fallbackToDestructiveMigration()
-                    // Añadimos esto para crear datos de prueba al iniciar la app por primera vez
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -44,29 +41,28 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 
-    // Esta clase sirve para meter automáticamente dos usuarios de prueba cuando instalas la app
     private class DatabaseCallback : RoomDatabase.Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 CoroutineScope(Dispatchers.IO).launch {
                     val dao = database.usuarioDao()
-                    // Si no existe el usuario1, lo creamos
-                    if (dao.obtenerUsuario("usuario1") == null) {
+                    if (dao.obtenerUsuario("admin") == null) {
                         dao.registrarUsuario(Usuario(
-                            nombreCompleto = "Usuario Uno Prueba",
-                            telefono = "111111111",
-                            usuario = "usuario1",
-                            contrasena = "1234"
+                            nombreCompleto = "Administrador Clínica",
+                            telefono = "000000000",
+                            usuario = "admin",
+                            contrasena = "admin",
+                            esAdmin = true
                         ))
                     }
-                    // Si no existe el usuario2, lo creamos
-                    if (dao.obtenerUsuario("usuario2") == null) {
+                    if (dao.obtenerUsuario("paciente1") == null) {
                         dao.registrarUsuario(Usuario(
-                            nombreCompleto = "Usuario Dos Prueba",
-                            telefono = "222222222",
-                            usuario = "usuario2",
-                            contrasena = "1234"
+                            nombreCompleto = "Paciente Uno",
+                            telefono = "111111111",
+                            usuario = "paciente1",
+                            contrasena = "1234",
+                            esAdmin = false
                         ))
                     }
                 }

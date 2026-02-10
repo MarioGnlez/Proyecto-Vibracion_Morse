@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,11 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vibracion_morse.textoAMorse
-import com.example.vibracion_morse.vibrarPatronMorse
 import com.example.vibracion_morse.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,17 +30,17 @@ fun Home(
     irTraductorManual: () -> Unit,
     irAjustes: () -> Unit,
     irChat: (String) -> Unit,
+    irSeguimiento: (String) -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val chats by viewModel.misChats.collectAsState()
-    // Guardamos qué chat hemos tocado una vez para saber si hay que entrar o no
-    var chatSeleccionado by remember { mutableStateOf<Int?>(null) }
+    val pacientes by viewModel.listaPacientes.collectAsState()
+
     val CelestePrincipal = Color(0xFF4DD0E1)
 
-    // Nada más entrar, cargamos los chats de la base de datos
     LaunchedEffect(usuarioLogueado) {
-        viewModel.cargarChats(usuarioLogueado)
+        viewModel.inicializar(usuarioLogueado)
     }
 
     Scaffold(
@@ -46,16 +48,21 @@ fun Home(
             TopAppBar(
                 title = {
                     Text(
-                        "Tus conversaciones",
+                        if (viewModel.esUsuarioAdmin) "Gestión Pacientes" else "Mis Conversaciones",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = CelestePrincipal
                     )
                 },
                 actions = {
-                    // Botón + para crear un chat nuevo
-                    IconButton(onClick = { viewModel.mostrarDialogo = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Añadir Chat", tint = CelestePrincipal)
+                    if (viewModel.esUsuarioAdmin) {
+                        IconButton(onClick = { viewModel.mostrarDialogoAlta = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Nuevo Paciente", tint = CelestePrincipal)
+                        }
+                    } else {
+                        IconButton(onClick = { viewModel.mostrarDialogoChat = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Añadir Chat", tint = CelestePrincipal)
+                        }
                     }
                 }
             )
@@ -67,145 +74,168 @@ fun Home(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                if (chats.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No tienes conversaciones.", color = Color.Gray)
-                    }
-                } else {
-                    // Lista eficiente que solo carga lo que cabe en la pantalla
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(chats) { chat ->
-                            val esSeleccionado = chatSeleccionado == chat.id
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (esSeleccionado) CelestePrincipal.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
-                                ),
-                                onClick = {
-                                    if (esSeleccionado) {
-                                        // Si ya estaba seleccionado y tocas otra vez, entras al chat
-                                        irChat(chat.usuarioContacto)
-                                    } else {
-                                        // Si es la primera vez que tocas, vibra el nombre del contacto
-                                        chatSeleccionado = chat.id
-                                        val morse = textoAMorse(chat.usuarioContacto)
-                                        vibrarPatronMorse(context, morse)
+
+            if (viewModel.esUsuarioAdmin) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(pacientes) { paciente ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text = paciente.nombreCompleto, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Text(text = "ID: ${paciente.usuario}", color = Color.Gray, fontSize = 14.sp)
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Button(
+                                        onClick = { viewModel.intentarCrearChat(usuarioLogueado, paciente.usuario); irChat(paciente.usuario) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal)
+                                    ) {
+                                        Icon(Icons.Default.Email, contentDescription = null)
                                     }
-                                }
-                            ) {
-                                Column(modifier = Modifier.padding(20.dp)) {
-                                    Text(text = chat.usuarioContacto, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                                    if (esSeleccionado) Text("Pulsa otra vez para entrar", style = MaterialTheme.typography.bodySmall, color = CelestePrincipal)
+
+                                    Button(
+                                        onClick = { irSeguimiento(paciente.usuario) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA726))
+                                    ) {
+                                        Icon(Icons.Default.Info, contentDescription = "Seguimiento")
+                                    }
+
+                                    Button(
+                                        onClick = { viewModel.borrarPaciente(paciente.usuario) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Borrar")
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botones inferiores para ir al traductor o a los ajustes
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { irTraductorManual() },
-                    modifier = Modifier
-                        .weight(0.7f)
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("TRADUCTOR", color = Color.White, fontWeight = FontWeight.Bold)
+            } else {
+                Column(modifier = Modifier.weight(1f)) {
+                    if (chats.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No tienes conversaciones activas.", color = Color.Gray)
+                        }
+                    } else {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(chats) { chat ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                    onClick = { irChat(chat.usuarioContacto) }
+                                ) {
+                                    Column(modifier = Modifier.padding(20.dp)) {
+                                        Text(text = chat.usuarioContacto, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
-                Button(
-                    onClick = { irAjustes() },
-                    modifier = Modifier
-                        .weight(0.3f)
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                    shape = RoundedCornerShape(16.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.Black)
+                    Button(
+                        onClick = { irTraductorManual() },
+                        modifier = Modifier.weight(0.7f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("TRADUCTOR MANUAL", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = { irAjustes() },
+                        modifier = Modifier.weight(0.3f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.Black)
+                    }
                 }
             }
         }
 
-        // Ventanita emergente para añadir un amigo nuevo
-        if (viewModel.mostrarDialogo) {
+        if (viewModel.mostrarDialogoChat) {
             var nuevoContacto by remember { mutableStateOf("") }
             val CelestePrincipal = Color(0xFF4DD0E1)
 
             AlertDialog(
-                onDismissRequest = { viewModel.mostrarDialogo = false },
+                onDismissRequest = { viewModel.mostrarDialogoChat = false },
                 containerColor = Color.White,
-                shape = RoundedCornerShape(24.dp),
-                title = {
-                    Text(
-                        text = "Nuevo Chat",
-                        color = CelestePrincipal,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Nuevo Chat", color = CelestePrincipal, fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
-                        Text(
-                            text = "Escribe el nombre del usuario con el que quieres hablar:",
-                            color = Color.Gray,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
                         OutlinedTextField(
                             value = nuevoContacto,
-                            onValueChange = {
-                                nuevoContacto = it
-                                viewModel.errorDialogo = null
-                            },
+                            onValueChange = { nuevoContacto = it; viewModel.errorDialogoChat = null },
                             label = { Text("Nombre de usuario") },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = CelestePrincipal,
-                                focusedLabelColor = CelestePrincipal,
-                                cursorColor = CelestePrincipal,
-                                unfocusedBorderColor = Color.LightGray
-                            )
+                            modifier = Modifier.fillMaxWidth()
                         )
-
-                        if (viewModel.errorDialogo != null) {
-                            Text(
-                                text = viewModel.errorDialogo!!,
-                                color = MaterialTheme.colorScheme.error,
-                                fontSize = 14.sp,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
+                        if (viewModel.errorDialogoChat != null) {
+                            Text(viewModel.errorDialogoChat!!, color = Color.Red, fontSize = 14.sp)
                         }
                     }
                 },
                 confirmButton = {
                     Button(
                         onClick = { viewModel.intentarCrearChat(usuarioLogueado, nuevoContacto) },
-                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Text("AÑADIR", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
+                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal)
+                    ) { Text("AÑADIR") }
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = { viewModel.mostrarDialogo = false },
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Text("CANCELAR", color = Color.Gray, fontWeight = FontWeight.Bold)
+                    TextButton(onClick = { viewModel.mostrarDialogoChat = false }) { Text("CANCELAR") }
+                }
+            )
+        }
+
+        if (viewModel.mostrarDialogoAlta) {
+            var nombre by remember { mutableStateOf("") }
+            var usuario by remember { mutableStateOf("") }
+            var pass by remember { mutableStateOf("") }
+            var tlf by remember { mutableStateOf("") }
+            val CelestePrincipal = Color(0xFF4DD0E1)
+
+            AlertDialog(
+                onDismissRequest = { viewModel.mostrarDialogoAlta = false },
+                containerColor = Color.White,
+                title = { Text("Alta Nuevo Paciente", color = CelestePrincipal, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre Completo") })
+                        OutlinedTextField(value = usuario, onValueChange = { usuario = it }, label = { Text("ID Usuario") })
+                        OutlinedTextField(
+                            value = pass,
+                            onValueChange = { pass = it },
+                            label = { Text("Contraseña") },
+                            visualTransformation = PasswordVisualTransformation()
+                        )
+                        OutlinedTextField(value = tlf, onValueChange = { tlf = it }, label = { Text("Teléfono") })
+
+                        if (viewModel.errorDialogoAlta != null) {
+                            Text(viewModel.errorDialogoAlta!!, color = Color.Red, fontSize = 14.sp)
+                        }
                     }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.crearPaciente(nombre, usuario, pass, tlf) },
+                        colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal)
+                    ) { Text("REGISTRAR") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.mostrarDialogoAlta = false }) { Text("CANCELAR") }
                 }
             )
         }

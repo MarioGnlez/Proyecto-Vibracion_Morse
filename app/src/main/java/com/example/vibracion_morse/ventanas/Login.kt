@@ -1,15 +1,12 @@
 package com.example.vibracion_morse.ventanas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,9 +36,8 @@ fun PantallaLogin(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Cambia el título si estamos registrando o iniciando sesión
         Text(
-            text = if (viewModel.esModoRegistro) "Crear Cuenta" else "Iniciar Sesión",
+            text = "Acceso Clínica",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = CelestePrincipal
@@ -56,11 +52,10 @@ fun PantallaLogin(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // Campo para el nombre de usuario
                 OutlinedTextField(
                     value = viewModel.usuario,
                     onValueChange = { viewModel.usuario = it; viewModel.error = null },
-                    label = { Text("Usuario") },
+                    label = { Text("Usuario / ID") },
                     leadingIcon = { Icon(Icons.Default.Face, null, tint = CelestePrincipal) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -69,7 +64,6 @@ fun PantallaLogin(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Campo contraseña (con puntitos para que no se vea)
                 OutlinedTextField(
                     value = viewModel.contrasena,
                     onValueChange = { viewModel.contrasena = it; viewModel.error = null },
@@ -81,40 +75,11 @@ fun PantallaLogin(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true
                 )
-
-                // Si estamos en modo "Registro", mostramos estos campos extra
-                if (viewModel.esModoRegistro) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = viewModel.nombreCompleto,
-                        onValueChange = { viewModel.nombreCompleto = it },
-                        label = { Text("Nombre Completo") },
-                        leadingIcon = { Icon(Icons.Default.Person, null, tint = CelestePrincipal) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = viewModel.telefono,
-                        onValueChange = { viewModel.telefono = it },
-                        label = { Text("Teléfono") },
-                        leadingIcon = { Icon(Icons.Default.Phone, null, tint = CelestePrincipal) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        singleLine = true
-                    )
-                }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Si hay algún error (como contraseña incorrecta), lo mostramos en rojo
         if (viewModel.error != null) {
             Text(
                 text = viewModel.error!!,
@@ -123,30 +88,20 @@ fun PantallaLogin(
             )
         }
 
-        // Botón principal para entrar o registrarse
         Button(
-            onClick = { viewModel.onAccionClick(onLoginSuccess) },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            onClick = { viewModel.login(onLoginSuccess) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = if (viewModel.esModoRegistro) "REGISTRARSE" else "ENTRAR",
+                text = "ENTRAR",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Texto clicable para cambiar entre Login y Registro
-        Text(
-            text = if (viewModel.esModoRegistro) "¿Ya tienes cuenta? Inicia sesión aquí" else "¿No tienes cuenta? Regístrate aquí",
-            color = Color.Gray,
-            modifier = Modifier
-                .clickable { viewModel.cambiarModo() }
-                .padding(8.dp)
-        )
     }
 }
