@@ -50,10 +50,43 @@ La estructura visual se basa en el componente `Scaffold`, que nos proporciona la
 **¿Por qué LazyColumn?**
 A diferencia de una columna normal, `LazyColumn` solo "dibuja" en pantalla los elementos visibles. Si una clínica tiene 500 pacientes, la app no se bloqueará porque solo cargará los 5 o 6 que caben en la pantalla en ese momento.
 
+**Evidencia de código (`PantallaSeguimiento.kt`):**
+```kotlin
+Scaffold(
+    topBar = {
+        TopAppBar(title = { Text("Historial Clínico") })
+    }
+) { padding ->
+    // LazyColumn solo renderiza los elementos visibles en pantalla
+    LazyColumn(
+        modifier = Modifier.padding(padding),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(registros) { reg ->
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Text(text = reg.nota)
+            }
+        }
+    }
+}
+```
+
 ### RA1.d Personalización de componentes
 Se ha diseñado una identidad visual propia para la clínica:
 * **Color Primario:** Cian (`#4DD0E1`), elegido por su alto contraste y visibilidad.
 * **Tarjetas (Cards):** Usadas para separar visualmente a cada paciente o registro médico, con bordes redondeados y una elevación suave para dar sensación de profundidad.
+
+**Evidencia de código (Estilo de Botones):**
+```kotlin
+Button(
+    onClick = { ... },
+    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4DD0E1)), // Color Corporativo
+    shape = RoundedCornerShape(12.dp), // Bordes suaves
+    modifier = Modifier.fillMaxWidth().height(50.dp) // Tamaño táctil accesible
+) {
+    Text("GUARDAR REGISTRO", color = Color.White, fontWeight = FontWeight.Bold)
+}
+```
 
 ### RA1.e Análisis del código
 El proyecto sigue la arquitectura **MVVM (Modelo - Vista - ViewModel)**. Esto significa que el código está separado en tres capas para que sea ordenado:
@@ -61,19 +94,37 @@ El proyecto sigue la arquitectura **MVVM (Modelo - Vista - ViewModel)**. Esto si
 2.  **Lógica (ViewModel):** Donde se decide qué hacer. Por ejemplo, `HomeViewModel` decide si mostrar la vista de admin o de paciente consultando el campo `esAdmin`.
 3.  **Visual (View):** Las pantallas que solo muestran lo que el ViewModel les dice.
 
+**Evidencia de código (`HomeViewModel.kt`):**
+```kotlin
+// El ViewModel expone el estado (StateFlow) a la Vista
+private val _listaPacientes = MutableStateFlow<List<Usuario>>(emptyList())
+val listaPacientes = _listaPacientes.asStateFlow()
+
+fun inicializar(miUsuario: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+        // Lógica de negocio separada de la UI
+        val user = usuarioDao.obtenerUsuario(miUsuario)
+        esUsuarioAdmin = user?.esAdmin == true
+    }
+}
+```
+
 ### RA1.f Modificación del código
 El código es modular. Recientemente se añadió la funcionalidad de "Seguimiento Clínico" creando un archivo nuevo `PantallaSeguimiento.kt` y conectándolo al sistema sin romper la funcionalidad de chat existente. Esto demuestra que la app está preparada para crecer.
 
 ### RA1.g Asociación de eventos
-La app responde de forma natural a las acciones del usuario.
-* **Ejemplo:** Al pulsar el botón "Guardar Registro" en el historial, el sistema guarda la nota en la base de datos, limpia el campo de texto y actualiza la lista automáticamente.
+La app responde de forma natural a las acciones del usuario. Al pulsar el botón "Guardar Registro" en el historial, el sistema guarda la nota en la base de datos, limpia el campo de texto y actualiza la lista automáticamente.
 
+**Evidencia de código (Evento onClick):**
 ```kotlin
-// Ejemplo sencillo de evento onClick en PantallaSeguimiento.kt
-Button(onClick = { 
-    viewModel.agregarRegistro(pacienteId) // Llama a la lógica
-}) {
-    Text("GUARDAR REGISTRO")
+Button(
+    onClick = { 
+        // Evento que dispara la lógica en el ViewModel
+        viewModel.agregarRegistro(pacienteId) 
+    }
+) {
+    Icon(Icons.Default.Add, contentDescription = null)
+    Text("GUARDAR")
 }
 ```
 
@@ -90,6 +141,23 @@ Utilizamos las herramientas nativas de Android (`VibratorManager` para versiones
 ### RA2.b Diseño conceptual NUI
 El concepto central es la **Traducción Háptica**. La app permite a una persona con sordoceguera "leer" un mensaje sintiendo las vibraciones en su mano (Código Morse), sustituyendo la vista y el oído por el tacto.
 
+**Evidencia de código (`MetodosVibracion.kt`):**
+```kotlin
+fun vibrarPatronMorse(context: Context, codigoMorse: String) {
+    // Convertimos puntos y rayas en tiempos de vibración (ms)
+    val tiempos = mutableListOf<Long>(0)
+    for (caracter in codigoMorse) {
+        when (caracter) {
+            '.' -> { tiempos.add(100L); tiempos.add(100L) } // Punto
+            '-' -> { tiempos.add(300L); tiempos.add(100L) } // Raya
+        }
+    }
+    // Ejecutamos la vibración con la API nativa
+    val effect = VibrationEffect.createWaveform(tiempos.toLongArray(), -1)
+    vibrator.vibrate(effect)
+}
+```
+
 ### RA2.d Interacción por gesto
 La interacción táctil es simple y directa: **un toque corto** sobre cualquier mensaje o tarjeta de contacto activa la lectura por vibración. No se requieren gestos complejos (como deslizar o pellizcar) para facilitar el uso a personas con dificultades motoras.
 
@@ -101,7 +169,24 @@ La interacción táctil es simple y directa: **un toque corto** sobre cualquier 
 Se han utilizado los componentes oficiales de **Material Design 3**: `OutlinedTextField` para formularios limpios, `DatePickerDialog` para seleccionar fechas cómodamente y `FloatingActionButton` para acciones principales.
 
 ### RA3.b Componentes reutilizables
-Hemos creado tarjetas genéricas que se reutilizan. Por ejemplo, el diseño de la "tarjeta de mensaje" se usa tanto para los mensajes enviados como recibidos, cambiando solo el color de fondo y la alineación.
+Hemos creado tarjetas genéricas que se reutilizan. Por ejemplo, el diseño de la "tarjeta de mensaje" se usa tanto para los mensajes enviados como recibidos.
+
+**Evidencia de código (Componente Reutilizable):**
+```kotlin
+// Tarjeta genérica usada en listas
+Card(
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text = paciente.nombreCompleto, fontWeight = FontWeight.Bold)
+        // Botones de acción encapsulados
+        Row {
+            Button(onClick = { irChat(paciente.usuario) }) { ... }
+            Button(onClick = { irSeguimiento(paciente.usuario) }) { ... }
+        }
+    }
+}
+```
 
 ### RA3.c Parámetros y defaults
 Las pantallas están diseñadas como funciones que reciben parámetros. Esto facilita probarlas o cambiarlas desde un solo sitio.
@@ -109,16 +194,14 @@ Ejemplo de la pantalla de Seguimiento que pide obligatoriamente el ID del pacien
 
 ```kotlin
 fun PantallaSeguimiento(
-    pacienteId: String, 
-    irAtras: () -> Unit
+    pacienteId: String,          // Parámetro de datos
+    irAtras: () -> Unit,         // Lambda de evento
+    viewModel: SeguimientoViewModel = viewModel() // Inyección por defecto
 ) { ... }
 ```
 
 ### RA3.d Eventos en componentes
 Los componentes exponen sus eventos mediante "lambdas" (funciones flecha), lo que permite que la pantalla padre decida qué hacer. Por ejemplo, al pulsar "Atrás", la pantalla no sabe adónde ir, simplemente avisa al navegador.
-
-### RA3.f Documentación
-El código incluye comentarios clave en las funciones más complejas (como la traducción a Morse) para facilitar su mantenimiento.
 
 ### RA3.h Integración en la app
 El componente `TopAppBar` (la barra superior con el título) se reutiliza en todas las pantallas, manteniendo la coherencia de navegación y asegurando que el usuario siempre sepa dónde está.
@@ -130,12 +213,6 @@ El componente `TopAppBar` (la barra superior con el título) se reutiliza en tod
 ### RA4.a Estándares
 La aplicación respeta los estándares de navegación de Android: botón de "Atrás" en la barra superior y títulos claros que indican en qué pantalla estás ("Gestión Pacientes", "Historial: Paciente1").
 
-### RA4.b Valoración de estándares
-Seguir Material Design asegura que cualquier profesional sanitario, aunque cambie de dispositivo, sepa instintivamente dónde tocar (el botón flotante `+` siempre está abajo a la derecha, el menú de opciones arriba a la derecha).
-
-### RA4.c Menús
-Se utilizan menús desplegables (`DropdownMenu`) en el chat para opciones secundarias como "Exportar Informe", manteniendo la interfaz limpia.
-
 ### RA4.d Distribución de acciones
 En el panel del administrador, los botones tienen colores semánticos para evitar errores:
 * **Azul:** Enviar mensaje (Acción neutra).
@@ -145,59 +222,89 @@ En el panel del administrador, los botones tienen colores semánticos para evita
 ### RA4.e Distribución de controles
 Los formularios siguen un orden lógico: primero la Fecha (con calendario), luego el Profesional y finalmente la Nota. Esto imita el flujo de trabajo real de un médico o cuidador.
 
-### RA4.f Elección de controles
-Se ha elegido un **Switch** para el modo Admin (porque es on/off) y un **Slider** para la velocidad de vibración (porque es un rango continuo). Cada control se adapta a su función.
-
-### RA4.g Diseño visual
-Diseño limpio ("Clean Interface") orientado a evitar la sobrecarga cognitiva, vital tanto para usuarios con diversidad funcional como para profesionales con poco tiempo.
-
 ### RA4.h Claridad de mensajes
-Si el administrador intenta crear un paciente sin rellenar el nombre, aparece un mensaje de error en rojo justo debajo del formulario indicando "Rellene todos los campos obligatorios".
+Si el administrador intenta crear un paciente sin rellenar el nombre, aparece un mensaje de error en rojo justo debajo del formulario.
 
-### RA4.i Pruebas usabilidad
-Se ha verificado que los botones tienen un tamaño mínimo de 48dp (estándar de accesibilidad) para que sean fáciles de pulsar.
-
-### RA4.j Evaluación en dispositivos
-La interfaz es responsive gracias a Compose; se adapta correctamente tanto a teléfonos pequeños como a tablets usadas en clínicas.
+**Evidencia de código (Validación):**
+```kotlin
+if (viewModel.errorDialogoAlta != null) {
+    // Mensaje de error en rojo visible para el usuario
+    Text(
+        text = viewModel.errorDialogoAlta!!, 
+        color = Color.Red, 
+        fontSize = 14.sp
+    )
+}
+```
 
 ---
 
 ## RA5. Informes (Gestión Clínica)
 
-[...]
+### RA5.a y RA5.b Generación de informes
+El sistema genera informes de texto `.txt` exportables con el historial de chat, incluyendo marcas de tiempo y participantes.
+
+**Evidencia de código (`PantallaChat.kt`):**
+```kotlin
+fun generarInformeChat(context: Context, usuario1: String, mensajes: List<Mensaje>) {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+    val contenido = StringBuilder()
+    
+    contenido.append("INFORME CLÍNICO - MORSE CHAT\n")
+    contenido.append("Fecha: $timeStamp\n\n")
+    
+    mensajes.forEach { m ->
+        // Formato estructurado: [FECHA] USUARIO: MENSAJE
+        contenido.append("[${m.fecha}] ${m.remitente}: ${m.texto}\n")
+    }
+    
+    // Escritura en almacenamiento privado
+    context.openFileOutput("Informe_$timeStamp.txt", Context.MODE_PRIVATE).use {
+        it.write(contenido.toString().toByteArray())
+    }
+}
+```
+
+### RA5.c Filtros de datos
+Se utilizan consultas SQL en los DAOs para filtrar la información relevante (por ejemplo, solo mostrar pacientes, no administradores).
+
+**Evidencia de código (`UsuarioDao.kt`):**
+```kotlin
+// Filtro para mostrar solo pacientes en la lista del administrador
+@Query("SELECT * FROM usuarios WHERE esAdmin = 0")
+suspend fun obtenerTodosLosPacientes(): List<Usuario>
+```
 
 ---
 
 ## RA6. Ayudas y Documentación
 
-### RA6.a Identifica sistemas de generación de ayudas
-La app utiliza etiquetas visuales y placeholders que guían al usuario antes de que escriba.
-
-### RA6.b Genera ayudas en formatos habituales
-Además de este documento técnico, el repositorio incluye un manual de usuario simplificado en el propio README.
-
 ### RA6.c Genera ayudas sensibles al contexto
 En los campos de formulario, utilizamos textos de ayuda ("placeholder") como *"Escriba evolución del paciente..."* o *"Nombre de usuario"* para guiar al profesional sobre qué dato introducir.
 
 ### RA6.d Documenta la estructura de la información persistente
-La base de datos utiliza un esquema relacional. La tabla de `Usuarios` es la principal; si se borra un usuario, el sistema de **Claves Foráneas (Foreign Keys)** se encarga de borrar automáticamente sus chats y sus informes de seguimiento para no dejar "datos basura".
+La base de datos utiliza un esquema relacional. La tabla de `Usuarios` es la principal; si se borra un usuario, el sistema de **Claves Foráneas (Foreign Keys)** se encarga de borrar automáticamente sus chats y sus informes de seguimiento.
 
-```mermaid
-erDiagram
-    USUARIO ||--o{ SEGUIMIENTO : tiene_historial
-    USUARIO {
-        string usuario PK
-        string password
-        boolean esAdmin
-    }
-    SEGUIMIENTO {
-        int id PK
-        string pacienteId FK
-        string empleadoNombre
-        string nota
-        string fecha
-    }
+**Evidencia de código (Claves Foráneas):**
+```kotlin
+@Entity(
+    tableName = "seguimientos",
+    foreignKeys = [
+        ForeignKey(
+            entity = Usuario::class,
+            parentColumns = ["usuario"],
+            childColumns = ["pacienteId"],
+            onDelete = ForeignKey.CASCADE // Borrado en cascada
+        )
+    ]
+)
+data class Seguimiento(...)
 ```
+
+
+
+[Image of Database Schema Diagram]
+
 
 ### RA6.e Manual de usuario (Roles)
 * **Para el Administrador:** Su flujo de trabajo es dar de alta pacientes con el botón `+`, y luego usar los botones de cada tarjeta para gestionar el día a día.
@@ -207,9 +314,6 @@ erDiagram
 La aplicación se entrega empaquetada en un archivo **APK Firmado** (`app-release.apk`).
 Para entornos corporativos (muchas tablets a la vez), se puede instalar usando el comando ADB:
 `adb install -r app-release.apk`
-
-### RA6.g Confecciona tutoriales
-Se incluye un vídeo demostrativo enlazado al principio de este documento que cubre el flujo completo de uso.
 
 ---
 
