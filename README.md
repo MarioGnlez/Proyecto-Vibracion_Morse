@@ -14,8 +14,8 @@
 **Morse Chat** ha evolucionado de una simple aplicación de mensajería a una **herramienta integral para entornos clínicos**. Su objetivo es facilitar la comunicación y el seguimiento de pacientes con diversidad funcional (visual o auditiva) mediante **vibración háptica**.
 
 El sistema diferencia dos roles claros:
-1.  **Administrador (Profesional):** Gestiona altas/bajas de pacientes y realiza el **seguimiento clínico** (historial de evolución).
-2.  **Paciente:** Utiliza la app como herramienta de comunicación asistiva (Traductor Morse y Chat).
+1.  **Administrador (Profesional de la Clínica):** Gestiona las altas de pacientes, elimina perfiles y realiza el **seguimiento clínico** (historial de evolución con fecha y notas).
+2.  **Paciente:** Utiliza la app como herramienta de comunicación asistiva (Traductor Morse y Chat con profesionales).
 
 ---
 
@@ -26,73 +26,48 @@ El sistema diferencia dos roles claros:
 
 # 📝 Memoria Técnica por Criterios de Evaluación (RA)
 
-A continuación, se justifica el cumplimiento de los Resultados de Aprendizaje mediante la implementación realizada.
-
 ## RA1. Interfaz Gráfica y Código
 
 ### RA1.a Analiza herramientas y librerías
-Se ha utilizado **Android Studio Ladybug** como IDE oficial. El proyecto se basa en **Kotlin** y utiliza **Jetpack Compose** para la UI moderna, prescindiendo de XML. Para la persistencia de datos (Pacientes, Chats, Seguimientos) se ha implementado **Room Database** por su robustez y seguridad (Sandboxing).
+Para el desarrollo de esta solución clínica se han seleccionado herramientas modernas y robustas:
+* **Android Studio (Ladybug):** Entorno de desarrollo oficial.
+* **Kotlin & Jetpack Compose:** Se ha prescindido del sistema antiguo de XML para crear una interfaz declarativa, más fácil de mantener y adaptar a distintos tamaños de pantalla.
+* **Room Database:** Librería fundamental para guardar los datos de pacientes y seguimientos de forma local y segura en la tablet o móvil de la clínica, sin depender de conexión a internet constante.
 
 ### RA1.b Crea interfaz gráfica
-La interfaz es **adaptativa según el rol**.
-* **Vista Admin:** Panel de gestión con lista de pacientes y botones de acción rápida (Email, Info, Borrar).
-* **Vista Paciente:** Interfaz simplificada con botones grandes para Chat y Traductor.
+La interfaz es **adaptativa según el rol** del usuario que inicia sesión. No se muestra lo mismo a un paciente que a un administrador.
 
-| **Login / Alta** | **Vista Admin (Gestión)** |
-|:---:|:---:|
-| <img src="fotos-documentacion/captura_login.png" width="250" alt="Login" /> | <img src="fotos-documentacion/captura_admin.png" width="250" alt="Panel Admin" /> |
+* **Panel de Administración:** Muestra un listado de pacientes con botones de acción rápida y colores semánticos (Naranja para seguimiento, Rojo para borrar).
+* **Panel de Paciente:** Interfaz simplificada con botones grandes y claros para acceder al Chat o al Traductor, facilitando la accesibilidad.
 
 ### RA1.c Uso de layouts y posicionamiento
-Se utiliza `Scaffold` para la estructura base (TopBar). Las listas (pacientes o mensajes) emplean `LazyColumn` para un rendimiento óptimo. Se usan `Row` y `Column` con `Arrangement.SpaceBetween` y `weights` para asegurar que los botones se distribuyen equitativamente en pantalla.
+La estructura visual se basa en el componente `Scaffold`, que nos proporciona la barra superior estándar automáticamente. Para los listados (tanto de pacientes como de historial clínico), utilizamos `LazyColumn`.
+
+**¿Por qué LazyColumn?**
+A diferencia de una columna normal, `LazyColumn` solo "dibuja" en pantalla los elementos visibles. Si una clínica tiene 500 pacientes, la app no se bloqueará porque solo cargará los 5 o 6 que caben en la pantalla en ese momento.
 
 ### RA1.d Personalización de componentes
-Se ha definido una paleta de colores personalizada con **Cian (`#4DD0E1`)** como color primario para garantizar alto contraste y accesibilidad. Los botones y tarjetas (`Card`) tienen bordes redondeados (`RoundedCornerShape(16.dp)`) para una estética amigable.
+Se ha diseñado una identidad visual propia para la clínica:
+* **Color Primario:** Cian (`#4DD0E1`), elegido por su alto contraste y visibilidad.
+* **Tarjetas (Cards):** Usadas para separar visualmente a cada paciente o registro médico, con bordes redondeados y una elevación suave para dar sensación de profundidad.
 
 ### RA1.e Análisis del código
-El proyecto sigue estrictamente la arquitectura **MVVM (Model-View-ViewModel)**:
-* **Datos:** `Usuario`, `Seguimiento`, `AppDatabase`.
-* **ViewModel:** `HomeViewModel` (lógica de roles), `SeguimientoViewModel` (lógica clínica).
-* **Vista:** Pantallas en Compose (`Home`, `PantallaSeguimiento`).
+El proyecto sigue la arquitectura **MVVM (Modelo - Vista - ViewModel)**. Esto significa que el código está separado en tres capas para que sea ordenado:
+1.  **Datos (Model):** La estructura de la base de datos (Tablas de Usuarios, Seguimientos, etc.).
+2.  **Lógica (ViewModel):** Donde se decide qué hacer. Por ejemplo, `HomeViewModel` decide si mostrar la vista de admin o de paciente.
+3.  **Visual (View):** Las pantallas que solo muestran lo que el ViewModel les dice.
 
 ### RA1.f Modificación del código
-La modularidad ha permitido escalar la app fácilmente. Se añadió la entidad `Seguimiento` y su DAO sin romper la lógica del Chat existente, gracias a la inyección de dependencias manual en el `ViewModel`.
+El código es modular. Recientemente se añadió la funcionalidad de "Seguimiento Clínico" creando un archivo nuevo `PantallaSeguimiento.kt` y conectándolo al sistema sin romper la funcionalidad de chat existente. Esto demuestra que la app está preparada para crecer.
 
 ### RA1.g Asociación de eventos
-La interacción es fluida mediante eventos `onClick`. Ejemplo: Al pulsar "Guardar Registro" en el seguimiento, se dispara una corrutina que guarda la fecha, profesional y nota, limpiando el formulario automáticamente al finalizar (`onSuccess`).
+La app responde de forma natural a las acciones del usuario.
+* **Ejemplo:** Al pulsar el botón "Guardar Registro" en el historial, el sistema guarda la nota en la base de datos, limpia el campo de texto y actualiza la lista automáticamente.
 
-### RA1.h App integrada
-Todos los módulos (Login -> Home -> Chat/Seguimiento) comparten la misma base de datos y sesión, permitiendo una experiencia unificada.
-
----
-
-## RA2. Interfases Naturales de Usuario (NUI)
-
-### RA2.a Herramientas NUI
-Se utiliza la API **`VibratorManager`** (Android 12+) y **`Vibrator`** (Legacy) para controlar el hardware háptico del dispositivo.
-
-### RA2.b Diseño conceptual NUI
-El concepto central es la **Traducción Háptica**: convertir texto digital (`String`) en impulsos físicos (vibraciones). Esto permite "leer con la piel".
-
-### RA2.c Interacción por voz
-No se incluye deliberadamente para favorecer la privacidad en entornos clínicos o silenciosos, sustituyéndose por la vibración.
-
-### RA2.d Interacción por gesto
-Se implementan gestos táctiles simples: **Toque simple** sobre un mensaje o contacto dispara la lectura háptica.
-
----
-
-## RA3. Componentes
-
-### RA3.a Herramientas de componentes
-Uso extensivo de **Material3** de Jetpack Compose (`OutlinedTextField`, `CardDefaults`, `FloatingActionButton`).
-
-### RA3.b Componentes reutilizables
-Las tarjetas de información (usadas tanto para mostrar Pacientes en el panel Admin como Mensajes en el Chat) comparten estructura de diseño.
-
-### RA3.c Parámetros y defaults
-Los componentes reciben parámetros tipados y lambdas. Ejemplo:
 ```kotlin
-fun PantallaSeguimiento(
-    pacienteId: String, // Parámetro obligatorio
-    irAtras: () -> Unit // Lambda para navegación
-)
+// Ejemplo sencillo de evento onClick
+Button(onClick = { 
+    viewModel.agregarRegistro(pacienteId) // Llama a la lógica
+}) {
+    Text("GUARDAR REGISTRO")
+}
