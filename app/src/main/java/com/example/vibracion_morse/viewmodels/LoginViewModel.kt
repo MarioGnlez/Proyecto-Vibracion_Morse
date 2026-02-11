@@ -31,10 +31,16 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val usuarioLogueado = dao.login(usuarioLimpio, passLimpio)
 
-            if (usuarioLogueado != null) {
-                withContext(Dispatchers.Main) { onSuccess(usuarioLimpio) }
-            } else {
-                withContext(Dispatchers.Main) { error = "Credenciales incorrectas" }
+            withContext(Dispatchers.Main) {
+                if (usuarioLogueado != null) {
+                    if (usuarioLogueado.rol == "PACIENTE") {
+                        error = "Acceso denegado: Los pacientes no tienen acceso a la plataforma."
+                    } else {
+                        onSuccess(usuarioLimpio)
+                    }
+                } else {
+                    error = "Credenciales incorrectas"
+                }
             }
         }
     }

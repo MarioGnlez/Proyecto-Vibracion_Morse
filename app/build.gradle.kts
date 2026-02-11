@@ -46,6 +46,7 @@ configurations.all {
 }
 
 dependencies {
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation(libs.androidx.junit.ktx)
     val room_version = "2.6.1"
 

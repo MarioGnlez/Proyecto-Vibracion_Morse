@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vibracion_morse.datos.AppDatabase
-import com.example.vibracion_morse.datos.Chat
 import com.example.vibracion_morse.datos.Usuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,20 +16,13 @@ import kotlinx.coroutines.withContext
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getDatabase(application)
-    private val chatDao = db.chatDao()
-    private val usuarioDao = db.usuarioDao()
+    private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
 
-    private val _misChats = MutableStateFlow<List<Chat>>(emptyList())
-    val misChats = _misChats.asStateFlow()
+    private val _listaUsuarios = MutableStateFlow<List<Usuario>>(emptyList())
+    val listaUsuarios = _listaUsuarios.asStateFlow()
 
-    private val _listaPacientes = MutableStateFlow<List<Usuario>>(emptyList())
-    val listaPacientes = _listaPacientes.asStateFlow()
-
-    var esUsuarioAdmin by mutableStateOf(false)
-
-    var mostrarDialogoChat by mutableStateOf(false)
-    var errorDialogoChat by mutableStateOf<String?>(null)
+    var rolActual by mutableStateOf("") // ADMIN o MEDICO
+    var viendoMedicos by mutableStateOf(false) // Solo para admin
 
     var mostrarDialogoAlta by mutableStateOf(false)
     var errorDialogoAlta by mutableStateOf<String?>(null)
@@ -38,39 +30,51 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun inicializar(miUsuario: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val user = usuarioDao.obtenerUsuario(miUsuario)
-            esUsuarioAdmin = user?.esAdmin == true
+            rolActual = user?.rol ?: ""
 
-            if (esUsuarioAdmin) {
-                cargarPacientes()
+            if (rolActual == "ADMIN") {
+                viendoMedicos = true
+                cargarMedicos()
             } else {
-                cargarChats(miUsuario)
+                viendoMedicos = false
+                cargarPacientes()
             }
         }
     }
 
-    private suspend fun cargarPacientes() {
-        val pacientes = usuarioDao.obtenerTodosLosPacientes()
-        _listaPacientes.value = pacientes
+    fun alternarVista() {
+        viendoMedicos = !viendoMedicos
+        if (viendoMedicos) cargarMedicos() else cargarPacientes()
     }
 
-    private suspend fun cargarChats(miUsuario: String) {
-        chatDao.obtenerMisChats(miUsuario).collect { lista ->
-            _misChats.value = lista
+    private fun cargarPacientes() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val pacientes = usuarioDao.obtenerUsuariosPorRol("PACIENTE")
+            _listaUsuarios.value = pacientes
         }
     }
 
-    fun borrarPaciente(nombreUsuario: String) {
+    private fun cargarMedicos() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val medicos = usuarioDao.obtenerUsuariosPorRol("MEDICO")
+            _listaUsuarios.value = medicos
+        }
+    }
+
+    fun borrarUsuario(nombreUsuario: String) {
         viewModelScope.launch(Dispatchers.IO) {
             usuarioDao.borrarUsuario(nombreUsuario)
-            cargarPacientes()
+            if (viendoMedicos) cargarMedicos() else cargarPacientes()
         }
     }
 
-    fun crearPaciente(nombre: String, usuario: String, pass: String, tlf: String) {
+    fun crearUsuario(nombre: String, usuario: String, pass: String, tlf: String) {
         if (nombre.isBlank() || usuario.isBlank() || pass.isBlank()) {
             errorDialogoAlta = "Rellene todos los campos obligatorios"
             return
         }
+
+        val rolACrear = if (viendoMedicos && rolActual == "ADMIN") "MEDICO" else "PACIENTE"
 
         viewModelScope.launch(Dispatchers.IO) {
             val existe = usuarioDao.obtenerUsuario(usuario)
@@ -83,43 +87,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         usuario = usuario,
                         contrasena = pass,
                         telefono = tlf,
-                        esAdmin = false
+                        rol = rolACrear
                     )
                 )
-                cargarPacientes()
+                if (viendoMedicos) cargarMedicos() else cargarPacientes()
                 withContext(Dispatchers.Main) {
                     mostrarDialogoAlta = false
                     errorDialogoAlta = null
-                }
-            }
-        }
-    }
-
-    fun intentarCrearChat(miUsuario: String, nombreContacto: String) {
-        if (miUsuario == nombreContacto) {
-            errorDialogoChat = "No puedes crear un chat contigo mismo"
-            return
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val usuarioDestino = usuarioDao.obtenerUsuario(nombreContacto)
-
-            if (usuarioDestino == null) {
-                withContext(Dispatchers.Main) { errorDialogoChat = "El usuario no existe" }
-            } else {
-                val chatParaMi = chatDao.existeChat(miUsuario, nombreContacto)
-                if (chatParaMi == null) {
-                    chatDao.insertarChat(Chat(usuarioPropietario = miUsuario, usuarioContacto = nombreContacto))
-                }
-
-                val chatParaEl = chatDao.existeChat(nombreContacto, miUsuario)
-                if (chatParaEl == null) {
-                    chatDao.insertarChat(Chat(usuarioPropietario = nombreContacto, usuarioContacto = miUsuario))
-                }
-
-                withContext(Dispatchers.Main) {
-                    mostrarDialogoChat = false
-                    errorDialogoChat = null
                 }
             }
         }

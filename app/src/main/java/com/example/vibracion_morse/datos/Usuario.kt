@@ -11,5 +11,5 @@ data class Usuario(
     val telefono: String,
     val usuario: String,
     val contrasena: String,
-    val esAdmin: Boolean = false
+    val rol: String
 )

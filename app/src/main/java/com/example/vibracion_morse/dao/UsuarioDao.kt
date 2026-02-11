@@ -17,8 +17,8 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE usuario = :nombreUsuario LIMIT 1")
     suspend fun obtenerUsuario(nombreUsuario: String): Usuario?
 
-    @Query("SELECT * FROM usuarios WHERE esAdmin = 0")
-    suspend fun obtenerTodosLosPacientes(): List<Usuario>
+    @Query("SELECT * FROM usuarios WHERE rol = :rol")
+    suspend fun obtenerUsuariosPorRol(rol: String): List<Usuario>
 
     @Query("DELETE FROM usuarios WHERE usuario = :nombreUsuario")
     suspend fun borrarUsuario(nombreUsuario: String)
