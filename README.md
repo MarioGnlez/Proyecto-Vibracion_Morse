@@ -9,13 +9,14 @@
 
 ---
 
-## 🏥 Descripción del Proyecto: Herramienta de Gestión Clínica y Comunicación Asistiva
+## 🏥 Descripción del Proyecto: Sistema de Gestión Clínica (SGC)
 
-**Morse Chat** ha evolucionado de una simple aplicación de mensajería a una **herramienta integral para entornos clínicos**. Su objetivo es facilitar la comunicación y el seguimiento de pacientes con diversidad funcional (visual o auditiva) mediante **vibración háptica**.
+**Morse Chat** es una plataforma de **Gestión de Pacientes y Comunicación Táctil** diseñada para centros de salud especializados en diversidad funcional.
 
-El sistema diferencia dos roles claros:
-1.  **Administrador (Profesional de la Clínica):** Gestiona las altas de pacientes, elimina perfiles y realiza el **seguimiento clínico** (historial de evolución con fecha y notas).
-2.  **Paciente:** Utiliza la app como herramienta de comunicación asistiva (Traductor Morse y Chat con profesionales).
+El sistema estructura el acceso mediante una jerarquía de roles estricta:
+1.  **Administrador:** Superusuario capaz de gestionar la plantilla médica y el listado global de pacientes.
+2.  **Médico:** Profesional sanitario encargado de dar de alta pacientes, gestionar sus expedientes y realizar el **Seguimiento Clínico**.
+3.  **Paciente:** Entidad pasiva en el sistema. Sus datos y evolución son gestionados por los profesionales. **Por seguridad, los pacientes no tienen acceso directo (login) a la aplicación.**
 
 ---
 
@@ -35,14 +36,15 @@ Para el desarrollo de esta solución clínica se han seleccionado herramientas m
 * **Room Database:** Librería fundamental para guardar los datos de pacientes y seguimientos de forma local y segura en la tablet o móvil de la clínica, sin depender de conexión a internet constante.
 
 ### RA1.b Crea interfaz gráfica
-La interfaz es **adaptativa según el rol** del usuario que inicia sesión. No se muestra lo mismo a un paciente que a un administrador.
+La interfaz se adapta dinámicamente al perfil del profesional logueado (Admin o Médico), ocultando o mostrando elementos de gestión según sus permisos.
 
-* **Panel de Administración:** Muestra un listado de pacientes con botones de acción rápida y colores semánticos (Naranja para seguimiento, Rojo para borrar).
-* **Panel de Paciente:** Interfaz simplificada con botones grandes y claros para acceder al Chat o al Traductor, facilitando la accesibilidad.
+* **Panel Administrador:** Permite alternar entre la vista de "Gestión de Médicos" y "Gestión de Pacientes". Tiene permisos totales de borrado y creación.
+* **Panel Médico:** Vista simplificada enfocada únicamente en sus pacientes asignados. Permite acceder al Historial Clínico y realizar altas rápidas.
 
-| **Login / Alta** | **Vista Admin (Gestión)** |
+| **Login (Bloqueo Pacientes)** | **Panel de Gestión (Admin/Médico)** |
 |:---:|:---:|
-| <img src="fotos-documentacion/captura_login.png" width="250" alt="Login" /> | <img src="fotos-documentacion/captura_home.png" width="250" alt="Panel Admin" /> |
+| <img src="fotos-documentacion/captura_login.png" width="250" alt="Login" /> | <img src="fotos-documentacion/captura_home.png" width="250" alt="Panel Gestión" /> |
+
 
 ### RA1.c Uso de layouts y posicionamiento
 La estructura visual se basa en el componente `Scaffold`, que nos proporciona la barra superior estándar automáticamente. Para los listados (tanto de pacientes como de historial clínico), utilizamos `LazyColumn`.
@@ -89,22 +91,24 @@ Button(
 ```
 
 ### RA1.e Análisis del código
-El proyecto sigue la arquitectura **MVVM (Modelo - Vista - ViewModel)**. Esto significa que el código está separado en tres capas para que sea ordenado:
-1.  **Datos (Model):** La estructura de la base de datos (Tablas de `Usuario`, `Seguimiento`, `Chat`, `Mensaje`).
-2.  **Lógica (ViewModel):** Donde se decide qué hacer. Por ejemplo, `HomeViewModel` decide si mostrar la vista de admin o de paciente consultando el campo `esAdmin`.
-3.  **Visual (View):** Las pantallas que solo muestran lo que el ViewModel les dice.
+La arquitectura se basa en una gestión de estados reactiva (`StateFlow`) que controla la visibilidad de los elementos de la UI según el rol del usuario (`rolActual`).
 
 **Evidencia de código (`HomeViewModel.kt`):**
 ```kotlin
-// El ViewModel expone el estado (StateFlow) a la Vista
-private val _listaPacientes = MutableStateFlow<List<Usuario>>(emptyList())
-val listaPacientes = _listaPacientes.asStateFlow()
-
+// Lógica de visualización según jerarquía de roles
 fun inicializar(miUsuario: String) {
     viewModelScope.launch(Dispatchers.IO) {
-        // Lógica de negocio separada de la UI
         val user = usuarioDao.obtenerUsuario(miUsuario)
-        esUsuarioAdmin = user?.esAdmin == true
+        rolActual = user?.rol ?: ""
+        
+        // El ADMIN inicia viendo médicos, el MÉDICO ve pacientes directamente
+        if (rolActual == "ADMIN") {
+            viendoMedicos = true
+            cargarMedicos()
+        } else {
+            viendoMedicos = false
+            cargarPacientes()
+        }
     }
 }
 ```
@@ -125,6 +129,15 @@ Button(
 ) {
     Icon(Icons.Default.Add, contentDescription = null)
     Text("GUARDAR")
+}
+```
+**Evidencia de Seguridad (Bloqueo de Login):**
+```kotlin
+// LoginViewModel.kt
+if (usuarioLogueado.rol == "PACIENTE") {
+    error = "Acceso denegado: Los pacientes no tienen acceso a la plataforma."
+} else {
+    onSuccess(usuarioLimpio)
 }
 ```
 
@@ -289,7 +302,22 @@ val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).form
 En los campos de formulario, utilizamos textos de ayuda ("placeholder") como *"Escriba evolución del paciente..."* o *"Nombre de usuario"* para guiar al profesional sobre qué dato introducir.
 
 ### RA6.d Documenta la estructura de la información persistente
-La base de datos utiliza un esquema relacional. La tabla de `Usuarios` es la principal; si se borra un usuario, el sistema de **Claves Foráneas (Foreign Keys)** se encarga de borrar automáticamente sus chats y sus informes de seguimiento.
+La base de datos `AppDatabase` se inicializa con una semilla de datos (Seed Data) que crea automáticamente la jerarquía de usuarios necesaria para probar la aplicación sin configuración previa.
+
+**Evidencia de código (`AppDatabase.kt`):**
+```kotlin
+// Creación automática de roles al instalar la app
+if (usuarioDao.obtenerUsuario("admin") == null) {
+    usuarioDao.registrarUsuario(Usuario(..., rol = "ADMIN"))
+}
+if (usuarioDao.obtenerUsuario("medico1") == null) {
+    usuarioDao.registrarUsuario(Usuario(..., rol = "MEDICO"))
+}
+// El paciente se crea para que los médicos tengan datos que gestionar
+if (usuarioDao.obtenerUsuario("paciente1") == null) {
+    usuarioDao.registrarUsuario(Usuario(..., rol = "PACIENTE"))
+}
+```
 
 **Evidencia de código (Claves Foráneas):**
 ```kotlin
