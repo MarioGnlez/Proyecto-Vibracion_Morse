@@ -38,13 +38,13 @@ Para el desarrollo de esta solución clínica se han seleccionado herramientas m
 ### RA1.b Crea interfaz gráfica
 La interfaz se adapta dinámicamente al perfil del profesional logueado (Admin o Médico), ocultando o mostrando elementos de gestión según sus permisos.
 
-* **Panel Administrador:** Permite alternar entre la vista de "Gestión de Médicos" y "Gestión de Pacientes". Tiene permisos totales de borrado y creación.
-* **Panel Médico:** Vista simplificada enfocada únicamente en sus pacientes asignados. Permite acceder al Historial Clínico y realizar altas rápidas.
+* **Panel Administrador:** Permite alternar entre la vista de "Gestión de Médicos" y "Gestión de Pacientes" mediante un selector superior. Tiene permisos totales.
+* **Panel Médico:** Vista simplificada enfocada únicamente en sus pacientes asignados. No tiene selector de vista ni acceso a la gestión de otros médicos.
 
-| **Login (Bloqueo Pacientes)** | **Panel de Gestión (Admin/Médico)** |
-|:---:|:---:|
-| <img src="fotos-documentacion/captura_login.png" width="250" alt="Login" /> | <img src="fotos-documentacion/captura_home.png" width="250" alt="Panel Gestión" /> |
-
+| **Acceso (Login)** | **Vista Administrador** | **Vista Médico** |
+|:---:|:---:|:---:|
+| <img src="fotos-documentacion/captura_login.png" width="250" alt="Login" /> | <img src="fotos-documentacion/captura_admin.png" width="250" alt="Panel Admin con Selector" /> | <img src="fotos-documentacion/captura_medico.png" width="250" alt="Panel Médico Simplificado" /> |
+| *Validación de credenciales y bloqueo de acceso a Pacientes.* | *Gestión completa: Puede crear/borrar tanto Médicos como Pacientes.* | *Gestión clínica: Solo puede gestionar Pacientes y sus historiales.* |
 
 ### RA1.c Uso de layouts y posicionamiento
 La estructura visual se basa en el componente `Scaffold`, que nos proporciona la barra superior estándar automáticamente. Para los listados (tanto de pacientes como de historial clínico), utilizamos `LazyColumn`.
