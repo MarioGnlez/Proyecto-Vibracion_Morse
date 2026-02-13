@@ -8,7 +8,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vibracion_morse.datos.AppDatabase
 import com.example.vibracion_morse.datos.Usuario
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher // <--- IMPORTANTE
+import kotlinx.coroutines.Dispatchers        // <--- IMPORTANTE
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,17 +19,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
 
+    // Variable para pruebas: Por defecto usa IO, pero los tests pueden cambiarla
+    var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     private val _listaUsuarios = MutableStateFlow<List<Usuario>>(emptyList())
     val listaUsuarios = _listaUsuarios.asStateFlow()
 
-    var rolActual by mutableStateOf("") // ADMIN o MEDICO
-    var viendoMedicos by mutableStateOf(false) // Solo para admin
+    var rolActual by mutableStateOf("")
+    var viendoMedicos by mutableStateOf(false)
 
     var mostrarDialogoAlta by mutableStateOf(false)
     var errorDialogoAlta by mutableStateOf<String?>(null)
 
     fun inicializar(miUsuario: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        // Usamos ioDispatcher en lugar de Dispatchers.IO directamente
+        viewModelScope.launch(ioDispatcher) {
             val user = usuarioDao.obtenerUsuario(miUsuario)
             rolActual = user?.rol ?: ""
 
@@ -48,21 +53,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun cargarPacientes() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) { // <--- CAMBIO
             val pacientes = usuarioDao.obtenerUsuariosPorRol("PACIENTE")
             _listaUsuarios.value = pacientes
         }
     }
 
     private fun cargarMedicos() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) { // <--- CAMBIO
             val medicos = usuarioDao.obtenerUsuariosPorRol("MEDICO")
             _listaUsuarios.value = medicos
         }
     }
 
     fun borrarUsuario(nombreUsuario: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) { // <--- CAMBIO
             usuarioDao.borrarUsuario(nombreUsuario)
             if (viendoMedicos) cargarMedicos() else cargarPacientes()
         }
@@ -76,9 +81,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         val rolACrear = if (viendoMedicos && rolActual == "ADMIN") "MEDICO" else "PACIENTE"
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) { // <--- CAMBIO
             val existe = usuarioDao.obtenerUsuario(usuario)
             if (existe != null) {
+                // Para volver al hilo principal usamos Main explícitamente o dejamos que Compose lo maneje
                 withContext(Dispatchers.Main) { errorDialogoAlta = "El ID de usuario ya existe" }
             } else {
                 usuarioDao.registrarUsuario(

@@ -38,6 +38,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true // <--- AÑADE ESTA LÍNEA
+    }
 }
 
 // Este bloque sigue siendo necesario para el error de "Duplicate class"
@@ -46,6 +49,13 @@ configurations.all {
 }
 
 dependencies {
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00")) // O tu versión actual
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
+    // Necesario para ver el árbol de componentes si fallan los tests
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation(libs.androidx.junit.ktx)
     val room_version = "2.6.1"

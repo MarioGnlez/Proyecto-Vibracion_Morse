@@ -57,9 +57,9 @@ fun Home(
                             text = if (viewModel.rolActual == "ADMIN") {
                                 if (viewModel.viendoMedicos) "Gestionando Médicos" else "Gestionando Pacientes"
                             } else if (viewModel.rolActual == "MEDICO") {
-                                "Gestionando Pacientes"
+                                "Mis Pacientes y Herramientas"
                             } else {
-                                "Herramientas de Comunicación"
+                                "Acceso Restringido"
                             },
                             fontSize = 14.sp,
                             color = Color.Gray
@@ -109,7 +109,7 @@ fun Home(
                 }
             }
 
-            // Lista de usuarios (ADMIN y MÉDICO ven listas, PACIENTE no ve lista de usuarios)
+            // Lista de usuarios (ADMIN y MÉDICO ven listas)
             if (viewModel.rolActual != "PACIENTE") {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
                     items(listaUsuarios) { usuario ->
@@ -130,7 +130,7 @@ fun Home(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    // Botón Historial (Solo para pacientes)
+                                    // Botón Historial (Visible si el usuario de la lista es PACIENTE)
                                     if (usuario.rol == "PACIENTE") {
                                         Button(
                                             onClick = { irSeguimiento(usuario.usuario) },
@@ -162,12 +162,11 @@ fun Home(
                     }
                 }
             } else {
-                // Si es PACIENTE, ocupa el espacio vacío para empujar los botones abajo
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            // Botones inferiores SOLO para PACIENTES (Herramientas de uso)
-            if (viewModel.rolActual == "PACIENTE") {
+            // Botones inferiores SOLO para MÉDICOS (Herramientas de Comunicación)
+            if (viewModel.rolActual == "MEDICO") {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
@@ -176,7 +175,7 @@ fun Home(
                         colors = ButtonDefaults.buttonColors(containerColor = CelestePrincipal),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("HERRAMIENTA TRADUCTOR", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("TRADUCTOR MANUAL", color = Color.White, fontWeight = FontWeight.Bold)
                     }
 
                     Button(
@@ -197,11 +196,10 @@ fun Home(
             var usuario by remember { mutableStateOf("") }
             var pass by remember { mutableStateOf("") }
             var tlf by remember { mutableStateOf("") }
-            val CelestePrincipal = Color(0xFF4DD0E1)
 
             // Si es ADMIN y ve médicos -> Crea Médico
             // Si es ADMIN y ve pacientes -> Crea Paciente
-            // Si es MÉDICO -> Siempre crea Paciente (viewModel.viendoMedicos es false)
+            // Si es MÉDICO -> Siempre crea Paciente
             val tipoEntidad = if (viewModel.viendoMedicos && viewModel.rolActual == "ADMIN") "Médico" else "Paciente"
 
             AlertDialog(

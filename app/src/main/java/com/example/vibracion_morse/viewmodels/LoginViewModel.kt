@@ -7,13 +7,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vibracion_morse.datos.AppDatabase
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher // <--- IMPORTANTE
+import kotlinx.coroutines.Dispatchers        // <--- IMPORTANTE
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = AppDatabase.getDatabase(application).usuarioDao()
+
+    // Variable inyectable para tests
+    var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     var usuario by mutableStateOf("")
     var contrasena by mutableStateOf("")
@@ -28,7 +32,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        // Usamos la variable ioDispatcher
+        viewModelScope.launch(ioDispatcher) {
             val usuarioLogueado = dao.login(usuarioLimpio, passLimpio)
 
             withContext(Dispatchers.Main) {
