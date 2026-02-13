@@ -25,6 +25,14 @@ El sistema estructura el acceso mediante una jerarquía de roles estricta:
 
 ---
 
+## 📚 Documentación Adicional
+Para profundizar en el uso y la calidad técnica del proyecto, consulte los siguientes documentos anexos:
+
+* 📖 **[Manual de Usuario (PDF/MD)](documentos/MANUAL_USUARIO.md):** Guía paso a paso para Administradores y Médicos.
+* 🧪 **[Memoria de Pruebas Unitarias y UI](documentos/PRUEBAS_UNITARIAS.md):** Documentación técnica de la estrategia de testing y resultados de calidad.
+
+---
+
 # 📝 Memoria Técnica por Criterios de Evaluación (RA)
 
 ## RA1. Interfaz Gráfica y Código
